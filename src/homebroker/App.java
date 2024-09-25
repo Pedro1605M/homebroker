@@ -1,8 +1,11 @@
 public class App{
     public static void main(String[] args) throws Exception{
-        System.out.println("homebroker");
-        System.out.println("Teste1");
-        System.out.println("Teste2");
+
+        SString acao = "MSFT";
+
+        StockApi acao01 = new StockApi();
+
+        acao01.getPrice(acao);
     }
 }
 
