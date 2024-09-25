@@ -1,6 +1,6 @@
 import java.sql.Date;
 
-public abstract class Pessoa {
+public class Pessoa {
     
     private String nome;
     private Date nascimento;
