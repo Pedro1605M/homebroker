@@ -40,7 +40,6 @@ public class StockApi {
             String lastPrice = extractLastPrice(jsonResponse); // Extrai o último preço da resposta JSON
 
             // Exibe o último preço da ação no console
-            System.out.println("Ultimo preço da " + SYMBOL +  ": $"  + lastPrice);
 
         } catch (Exception e) {
             e.printStackTrace(); // Exibe o stack trace no caso de erro
