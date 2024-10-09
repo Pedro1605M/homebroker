@@ -1,5 +1,3 @@
-
-
 import java.io.IOException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +7,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
-    Parent root = FXMLLoader.load(getClass().getResource("layout.fxml"));
+    Parent root = FXMLLoader.load(getClass().getResource("Cadastro.fxml"));
     primaryStage.setTitle("Hello World");
     primaryStage.setScene(new Scene(root));
     primaryStage.show();
