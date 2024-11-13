@@ -3,74 +3,76 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.util.Iterator;
-
 import org.json.JSONObject;
 
 public class StockApi {
 
-    // Chave da API Alpha Vantage e símbolo da ação (AAPL) que será consultada
-    public static final String API_KEY = "H2VQ0C715S0W7DRB"; // Substitua pela sua chave da API Alpha Vantage
+    // Substitua pela sua chave da API Alpha Vantage
+    public static final String API_KEY = "H2VQ0C715S0W7DRB"; 
 
+    private double lastPrice = -1.0; // Armazena o último preço
 
-    public void getPrice(String SYMBOL) {
+    // Método para buscar o preço de uma ação
+    public void fetchAndStorePrice(String symbol) {
         try {
-            // Cria a URI e a URL da requisição
+            // Monta a URL da requisição para a Alpha Vantage
             String urlString = String.format(
                 "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=%s&interval=1min&apikey=%s",
-                SYMBOL, API_KEY); // Monta a URL com a função, símbolo da ação e chave de API
-            URI uri = new URI(urlString); // Converte a string da URL para uma URI válida
-            URL url = uri.toURL(); // Converte a URI para uma URL
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection(); // Abre a conexão HTTP
-
-            // Define o método de requisição como "GET" para buscar dados
+                symbol, API_KEY);
+            URI uri = new URI(urlString);
+            URL url = uri.toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
-            // Lê a resposta da requisição
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream())); // Lê a resposta da conexão
-            StringBuilder response = new StringBuilder(); // Usado para armazenar a resposta completa
+            // Lê a resposta da API
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            StringBuilder response = new StringBuilder();
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine); // Adiciona cada linha da resposta ao StringBuilder
+                response.append(inputLine);
             }
-            in.close(); // Fecha o leitor de buffer
+            in.close();
 
-            // Armazena a resposta JSON como string
+            // Extrai o último preço da resposta JSON
             String jsonResponse = response.toString();
-            String lastPrice = extractLastPrice(jsonResponse); // Extrai o último preço da resposta JSON
-
-            // Exibe o último preço da ação no console
-            System.out.println("Ultimo preço da " + SYMBOL +  ": $"  + lastPrice);
-
+            this.lastPrice = extractLastPrice(jsonResponse);
+            
         } catch (Exception e) {
-            e.printStackTrace(); // Exibe o stack trace no caso de erro
+            e.printStackTrace(); // Exibe o erro caso algo falhe
         }
     }
 
-    // Função que extrai o último preço da resposta JSON
-    private static String extractLastPrice(String jsonResponse) {
+    // Método para extrair o último preço a partir do JSON
+    private double extractLastPrice(String jsonResponse) {
         try {
-            // Converte a resposta em um objeto JSON
+            // Converte a resposta JSON em um JSONObject
             JSONObject jsonObject = new JSONObject(jsonResponse);
+            
+            // Verifica se a chave "Time Series (1min)" existe na resposta
+            if (jsonObject.has("Time Series (1min)")) {
+                JSONObject timeSeries = jsonObject.getJSONObject("Time Series (1min)");
 
-            // Obtém a seção "Time Series (1min)" do JSON
-            JSONObject timeSeries = jsonObject.getJSONObject("Time Series (1min)");
+                // Pega a chave mais recente da série temporal (o último preço)
+                String latestTime = timeSeries.keys().next();
+                JSONObject latestData = timeSeries.getJSONObject(latestTime);
 
-            // Obtém a primeira (mais recente) chave na série temporal (timestamp mais recente)
-            Iterator<String> keys = timeSeries.keys(); // Iterador para navegar nas chaves (timestamps)
-            if (keys.hasNext()) {
-                String latestTimestamp = keys.next(); // Pega o timestamp mais recente
-                JSONObject latestData = timeSeries.getJSONObject(latestTimestamp); // Obtém os dados do timestamp mais recente
+                // Extrai o valor do preço de fechamento ("4. close")
+                String lastPriceStr = latestData.getString("4. close");
 
-                // Retorna o preço de fechamento para o timestamp mais recente
-                return latestData.getString("4. close"); // Pega o preço de fechamento no campo "4. close"
+                // Converte a string para double e retorna
+                return Double.parseDouble(lastPriceStr);
+            } else {
+                System.out.println("Erro: A resposta da API não contém os dados esperados.");
+                return -1.0;
             }
-
         } catch (Exception e) {
-            e.printStackTrace(); // Exibe o stack trace em caso de erro durante a extração
-            return "Error parsing the JSON response."; // Retorna uma mensagem de erro
+            e.printStackTrace();
+            return -1.0; // Caso ocorra algum erro, retorna -1.0
         }
-        return "Price data not found."; // Caso não encontre os dados de preço
     }
-    
+
+    // Método para obter o último preço armazenado
+    public double getLastPrice() {
+        return this.lastPrice;
+    }
 }

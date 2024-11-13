@@ -5,13 +5,11 @@ public class Conta{
     private Pessoa conta;
     private Double saldo;
     private Integer numeroDaConta;
-    ArrayList<Acoes> acoes = new ArrayList();
     
-    public Conta(Pessoa conta, Double saldo, Integer numeroDaConta, ArrayList<Acoes> acoes) {
+    public Conta(Pessoa conta, Double saldo, Integer numeroDaConta) {
         this.conta = conta;
         this.saldo = saldo;
         this.numeroDaConta = numeroDaConta;
-        this.acoes = acoes;
     }
 
     public Pessoa getConta() {
@@ -36,14 +34,6 @@ public class Conta{
 
     public void setNumeroDaConta(Integer numeroDaConta) {
         this.numeroDaConta = numeroDaConta;
-    }
-    
-    public ArrayList<Acoes> getAcoes() {
-        return acoes;
-    }
-
-    public void setAcoes(ArrayList<Acoes> acoes) {
-        this.acoes = acoes;
     }
     
     public void sacar(Double valor){
