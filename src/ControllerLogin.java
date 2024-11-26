@@ -12,16 +12,16 @@ import javafx.stage.Stage;
 public class ControllerLogin {
 
     @FXML
-    private Button btnlogar;
-
-    @FXML
     private TextField campoemail;
 
     @FXML
     private TextField camposenha;
 
     @FXML
-    void logar(ActionEvent event) throws IOException {
+    private Button entrar_id;
+
+    @FXML
+    void entrar(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(""));
             Parent root = loader.load();
             Stage stage = new Stage();

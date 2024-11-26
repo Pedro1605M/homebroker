@@ -11,7 +11,7 @@ public class StockApi {
     public static final String API_KEY = "H2VQ0C715S0W7DRB"; 
 
     private double lastPrice = -1.0; // Armazena o último preço
-
+    
     // Método para buscar o preço de uma ação
     public void fetchAndStorePrice(String symbol) {
         try {
