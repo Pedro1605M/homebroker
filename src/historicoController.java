@@ -6,30 +6,29 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
-public class ControllerLogin {
+public class historicoController {
 
     @FXML
-    private TextField campoemail;
+    private Button menu;
 
     @FXML
-    private TextField camposenha;
+    private Label mostraHistorico;
 
     @FXML
-    private Button entrar_id;
+    private Label saldo;
 
     @FXML
-    void entrar(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("principal.fxml"));
+    void irpratelaMenu(ActionEvent event) throws IOException {
+         FXMLLoader loader = new FXMLLoader(getClass().getResource("Menu.fxml"));
             Parent root = loader.load();
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
-            stage.setTitle("Homebroker");
+            stage.setTitle("Menu");
             stage.show();
     }
 
+
 }
-
-

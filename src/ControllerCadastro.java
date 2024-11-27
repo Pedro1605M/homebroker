@@ -36,7 +36,7 @@ import javafx.scene.control.Alert;
         private Button login;
     
         @FXML
-        void cadastrar(ActionEvent event) {
+        void cadastrar(ActionEvent event) throws IOException {
             String name = campoNome.getText();
             String email = campoEmail.getText();
             String password = campoSenha.getText();
@@ -58,6 +58,12 @@ import javafx.scene.control.Alert;
                 int rowsInserted = statement.executeUpdate();
                 if (rowsInserted > 0) {
                     showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Usuário cadastrado com sucesso!");
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
+                    Parent root = loader.load();
+                    Stage stage = new Stage();
+                    stage.setScene(new Scene(root));
+                    stage.setTitle("Login");
+                    stage.show();
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -75,7 +81,7 @@ import javafx.scene.control.Alert;
         }
 
     
-        /* @FXML
+        @FXML
         void irParaTelaLogin(ActionEvent event) throws IOException {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
             Parent root = loader.load();
@@ -83,7 +89,7 @@ import javafx.scene.control.Alert;
             stage.setScene(new Scene(root));
             stage.setTitle("Login");
             stage.show();
-        } */
+        }
     
     }
     
