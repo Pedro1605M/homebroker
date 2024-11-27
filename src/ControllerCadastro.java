@@ -16,9 +16,9 @@ import javafx.scene.control.Alert;
     
     public class ControllerCadastro {
 
-        private static final String DB_URL = "jdbc:mysql://localhost:3306/homebroker";
-        private static final String DB_USER = "root"; 
-        private static final String DB_PASSWORD = "123456";
+        private static final String DB_URL = "jdbc:mysql://sql10.freesqldatabase.com:3306/sql10748012";
+        private static final String DB_USER = "sql10748012"; 
+        private static final String DB_PASSWORD = "ezHmlE5dnw";
     
         @FXML
         private Button cadastrar_id;

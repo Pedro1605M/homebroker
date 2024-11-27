@@ -7,7 +7,6 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    birthdate DATE NOT NULL,
     password VARCHAR(255) NOT NULL, -- Store hashed passwords
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

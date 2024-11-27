@@ -34,7 +34,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("Login.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("Cadastro.fxml"));
         primaryStage.setTitle("Home Broker");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
