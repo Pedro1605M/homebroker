@@ -37,22 +37,44 @@ public class principalController {
     @FXML
     private Label labelSaldo;
 
-    Conta conta = new Conta();
-    Double saldo;
 
+    @FXML
+    private Label quant;
+
+    private Conta conta; // Instância da classe Conta
+    private StockApi StockApi;
+    private int quantidade = 0;
+
+    @FXML
+    public void initialize() {
+        conta = new Conta(); // Inicializa a conta quando o controlador é carregado
+        atualizarSaldo(); // Atualiza o saldo na interface
+        atualizarQuantidade(); // Exibe quantidade inicial
+    }
 
     @FXML
     void depositar(ActionEvent event) {
-        String valorDeposito = deposito.getText();
-        Double valorDeposito2 = Double.parseDouble(valorDeposito);
-        saldo = conta.getSaldo();
-        Double novoSaldo = saldo + valorDeposito2;
+        try {
+            // Lê o valor do campo de texto
+            String valorDeposito = deposito.getText();
+            Double valor = Double.parseDouble(valorDeposito);
+
+            // Adiciona o valor ao saldo da conta
+            conta.adicionarSaldo(valor);
+
+            // Atualiza o saldo exibido
+            atualizarSaldo();
+        } catch (NumberFormatException e) {
+            // Caso o valor inserido não seja numérico, exibe mensagem de erro
+            labelSaldo.setText("Erro: Valor inválido!");
+        }
     }
 
-    @FXML
-    void escolherAcao(ActionEvent event) {
-
+    private void atualizarSaldo() {
+        // Exibe o saldo atual formatado
+        labelSaldo.setText(String.format("%.2f", conta.getSaldo()));
     }
+    
 
     @FXML
     void irpratelaMenu(ActionEvent event) throws IOException {
@@ -66,12 +88,21 @@ public class principalController {
 
     @FXML
     void mais(ActionEvent event) {
-
+        quantidade++; // Incrementa a quantidade
+        atualizarQuantidade(); // Atualiza a exibição
     }
 
     @FXML
     void menos(ActionEvent event) {
+        if (quantidade > 0) { // Garante que a quantidade não fique negativa
+            quantidade--; // Decrementa a quantidade
+        }
+        atualizarQuantidade(); // Atualiza a exibição
+    }
 
+    private void atualizarQuantidade() {
+        // Atualiza a exibição da quantidade
+        quant.setText("" + quantidade);
     }
 
     @FXML
@@ -80,7 +111,13 @@ public class principalController {
     }
     @FXML
     void comprar(ActionEvent event) {
-
+        String siglaAPI = acoes.getText();
+        StockApi.fetchAndStorePrice(siglaAPI);
+        Double precoAcao = StockApi.getLastPrice();
+        Double precoCompra = precoAcao * quantidade;
+        if(precoCompra < conta.getSaldo()){
+            
+        }
     }
 
 }
