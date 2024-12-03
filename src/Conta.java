@@ -1,16 +1,8 @@
-import java.util.ArrayList;
-
 public class Conta{
     
     private Pessoa conta;
     private Double saldo;
     private Integer numeroDaConta;
-    
-    public Conta(Pessoa conta, Double saldo, Integer numeroDaConta) {
-        this.conta = conta;
-        this.saldo = saldo;
-        this.numeroDaConta = numeroDaConta;
-    }
 
     public Pessoa getConta() {
         return conta;

@@ -36,6 +36,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -99,12 +100,12 @@
             <TextField fx:id="campoemail" layoutX="188.0" layoutY="166.0" prefHeight="38.0" prefWidth="269.0" promptText="Digite o seu Email:" style="-fx-background-radius: 20px;" />
             <Text fill="WHITE" layoutX="198.0" layoutY="161.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Email" />
             <Text fill="WHITE" layoutX="184.0" layoutY="238.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Senha" />
-            <TextField fx:id="camposenha" layoutX="188.0" layoutY="241.0" prefHeight="38.0" prefWidth="269.0" promptText="Digite a sua senha:" style="-fx-background-radius: 20px;" />
             <Button fx:id="entrar_id" layoutX="271.0" layoutY="303.0" mnemonicParsing="false" onAction="#entrar" prefHeight="41.0" prefWidth="130.0" style="-fx-background-color: #8A5aa4; -fx-background-radius: 20px;" text="Entrar">
                <font>
                   <Font name="System Bold" size="13.0" />
                </font>
             </Button>
+            <PasswordField fx:id="camposenha" layoutX="188.0" layoutY="249.0" prefHeight="38.0" prefWidth="275.0" promptText="Digite a sua senha:" style="-fx-background-radius: 20px;" />
          </children>
     </AnchorPane>
   </children>
