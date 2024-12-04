@@ -14,9 +14,10 @@ public class StockApi {
     public static final String API_KEY = "H2VQ0C715S0W7DRB"; 
 
     // Map para armazenar o histórico de preços por símbolo da ação
-    private Map<String, ArrayList<Double>> priceHistories = new HashMap<>();
+    // Agora o Map armazena a data e o preço de fechamento
+    private Map<String, ArrayList<Map<String, Double>>> priceHistories = new HashMap<>();
 
-    // Método para buscar o preço de uma ação
+    // Método para buscar o preço de uma ação e armazenar a data junto com o preço
     public void fetchAndStorePrice(String symbol) {
         try {
             // Monta a URL da requisição para a Alpha Vantage
@@ -37,9 +38,9 @@ public class StockApi {
             }
             in.close();
 
-            // Extrai todos os preços da resposta JSON
+            // Extrai todos os preços e datas da resposta JSON
             String jsonResponse = response.toString();
-            ArrayList<Double> currentPrices = extractPrices(jsonResponse);
+            ArrayList<Map<String, Double>> currentPrices = extractPricesWithDate(jsonResponse);
             
             // Se houver preços válidos, armazene no histórico da ação
             if (!currentPrices.isEmpty()) {
@@ -53,9 +54,9 @@ public class StockApi {
         }
     }
 
-    // Método para extrair todos os preços a partir do JSON
-    private ArrayList<Double> extractPrices(String jsonResponse) {
-        ArrayList<Double> prices = new ArrayList<>();
+    // Método para extrair preços e datas a partir do JSON
+    private ArrayList<Map<String, Double>> extractPricesWithDate(String jsonResponse) {
+        ArrayList<Map<String, Double>> priceWithDates = new ArrayList<>();
         try {
             // Converte a resposta JSON em um JSONObject
             JSONObject jsonObject = new JSONObject(jsonResponse);
@@ -64,11 +65,18 @@ public class StockApi {
             if (jsonObject.has("Time Series (1min)")) {
                 JSONObject timeSeries = jsonObject.getJSONObject("Time Series (1min)");
 
-                // Percorre todos os timestamps e extrai os preços de fechamento
+                // Percorre todos os timestamps e extrai a data e o preço de fechamento
                 for (String timestamp : timeSeries.keySet()) {
                     JSONObject data = timeSeries.getJSONObject(timestamp);
                     String lastPriceStr = data.getString("4. close");
-                    prices.add(Double.parseDouble(lastPriceStr));
+                    double price = Double.parseDouble(lastPriceStr);
+
+                    // Cria um mapa para armazenar a data e o preço
+                    Map<String, Double> priceData = new HashMap<>();
+                    priceData.put(timestamp, price);
+
+                    // Adiciona o mapa ao histórico
+                    priceWithDates.add(priceData);
                 }
             } else {
                 System.out.println("Erro: A resposta da API não contém os dados esperados.");
@@ -76,39 +84,77 @@ public class StockApi {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return prices;
+        return priceWithDates;
     }
 
-    // Método para armazenar os preços no histórico de uma ação específica
-    private void storePriceHistory(String symbol, ArrayList<Double> newPrices) {
+    // Método para armazenar os preços e datas no histórico de uma ação específica
+    private void storePriceHistory(String symbol, ArrayList<Map<String, Double>> newPriceData) {
         // Recupera o histórico atual ou cria uma nova lista
-        ArrayList<Double> history = priceHistories.getOrDefault(symbol, new ArrayList<>());
+        ArrayList<Map<String, Double>> history = priceHistories.getOrDefault(symbol, new ArrayList<>());
         
-        // Adiciona todos os novos preços ao histórico
-        history.addAll(newPrices);
+        // Adiciona todos os novos dados ao histórico
+        history.addAll(newPriceData);
 
         // Armazena o histórico atualizado no Map
         priceHistories.put(symbol, history);
     }
 
-    // Método para obter o histórico de preços de uma ação
-    public ArrayList<Double> getPriceHistory(String symbol) {
+    // Método para obter o histórico de preços de uma ação com as datas
+    public ArrayList<Map<String, Double>> getPriceHistoryWithDate(String symbol) {
         return priceHistories.getOrDefault(symbol, new ArrayList<>());
     }
 
-    // Método para obter o último preço de uma ação
-    public Double getLastPrice(String symbol) {
+    // Método para obter o último preço de uma ação junto com a data
+    public Map<String, Double> getLastPriceWithDate(String symbol) {
         // Recupera o histórico de preços
-        ArrayList<Double> history = priceHistories.getOrDefault(symbol, new ArrayList<>());
+        ArrayList<Map<String, Double>> history = priceHistories.getOrDefault(symbol, new ArrayList<>());
 
         // Verifica se há preços armazenados
         if (!history.isEmpty()) {
-            // Retorna o último preço
+            // Retorna o último preço e a data
             return history.get(history.size() - 1);
         } else {
             System.out.println("Erro: Não há dados de preço disponíveis para " + symbol);
             return null;
         }
     }
+
+    public static void main(String[] args) {
+        // Cria uma instância da StockApi
+        StockApi stockApi = new StockApi();
+        
+        // Lista de símbolos das ações que você deseja consultar
+        String[] symbols = {"AAPL", "GOOG", "MSFT"};  // Você pode adicionar mais símbolos aqui
+
+        // Para cada símbolo, buscamos os dados
+        for (String symbol : symbols) {
+            System.out.println("Buscando dados para a ação: " + symbol);
+            stockApi.fetchAndStorePrice(symbol);
+
+            // Obtém o histórico de preços com as datas
+            ArrayList<Map<String, Double>> priceHistory = stockApi.getPriceHistoryWithDate(symbol);
+
+            // Exibe o histórico de preços com as datas
+            System.out.println("\nHistórico de preços para " + symbol + ":");
+            for (Map<String, Double> priceData : priceHistory) {
+                for (String timestamp : priceData.keySet()) {
+                    System.out.println("Data: " + timestamp + ", Preço: " + priceData.get(timestamp));
+                }
+            }
+
+            // Obtém o último preço com a data
+            Map<String, Double> lastPrice = stockApi.getLastPriceWithDate(symbol);
+            if (lastPrice != null) {
+                System.out.println("\nÚltimo preço para " + symbol + ":");
+                for (String timestamp : lastPrice.keySet()) {
+                    System.out.println("Data: " + timestamp + ", Preço: " + lastPrice.get(timestamp));
+                }
+            }
+
+            // Espaço entre as informações das ações
+            System.out.println("\n---------------------------------------------------\n");
+        }
+    }
 }
+
 
