@@ -70,9 +70,9 @@
       <Button fx:id="btnMais" layoutX="488.0" layoutY="229.0" mnemonicParsing="false" onAction="#mais" prefHeight="41.0" prefWidth="54.0" style="-fx-background-color: #2f3f4b;" text="+" textFill="#bfb9b9" />
       <Button fx:id="btnMenos" layoutX="555.0" layoutY="229.0" mnemonicParsing="false" onAction="#menos" prefHeight="41.0" prefWidth="54.0" style="-fx-background-color: #2f3f4b;" text="_" textFill="WHITE" />
       <Label fx:id="labelSaldo" layoutX="549.0" layoutY="23.0" />
-      <TextField fx:id="acoes" layoutX="22.0" layoutY="72.0" onAction="#escolherAcao" prefHeight="25.0" prefWidth="137.0" promptText="Escolher a ação" style="-fx-background-radius: 20px; -fx-background-color: #2f3f4b;" />
+      <TextField fx:id="acoes" layoutX="22.0" layoutY="72.0" prefHeight="25.0" prefWidth="137.0" promptText="Escolher a ação" style="-fx-background-radius: 20px; -fx-background-color: #2f3f4b;" />
       <TextField fx:id="deposito" layoutX="483.0" layoutY="85.0" prefHeight="30.0" prefWidth="130.0" promptText="\$ deposito" style="-fx-background-radius: 20px; -fx-background-color: #2f3f4b;" />
       <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#2f3f4b" height="20.0" layoutX="501.0" layoutY="201.0" stroke="BLACK" strokeType="INSIDE" width="99.0" />
-      <Label fx:id="quant" layoutX="546.0" layoutY="203.0" text="0" />
+      <Label fx:id="quant" layoutX="546.0" layoutY="203.0" />
    </children>
 </AnchorPane>
