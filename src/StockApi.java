@@ -4,14 +4,18 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StockApi {
 
     // Substitua pela sua chave da API Alpha Vantage
     public static final String API_KEY = "H2VQ0C715S0W7DRB"; 
 
-    private double lastPrice = -1.0; // Armazena o último preço
-    
+    // Map para armazenar o histórico de preços por símbolo da ação
+    private Map<String, ArrayList<Double>> priceHistories = new HashMap<>();
+
     // Método para buscar o preço de uma ação
     public void fetchAndStorePrice(String symbol) {
         try {
@@ -33,17 +37,25 @@ public class StockApi {
             }
             in.close();
 
-            // Extrai o último preço da resposta JSON
+            // Extrai todos os preços da resposta JSON
             String jsonResponse = response.toString();
-            this.lastPrice = extractLastPrice(jsonResponse);
+            ArrayList<Double> currentPrices = extractPrices(jsonResponse);
             
+            // Se houver preços válidos, armazene no histórico da ação
+            if (!currentPrices.isEmpty()) {
+                storePriceHistory(symbol, currentPrices);
+            } else {
+                System.out.println("Erro: Não há dados de preço válidos para " + symbol);
+            }
+
         } catch (Exception e) {
             e.printStackTrace(); // Exibe o erro caso algo falhe
         }
     }
 
-    // Método para extrair o último preço a partir do JSON
-    private double extractLastPrice(String jsonResponse) {
+    // Método para extrair todos os preços a partir do JSON
+    private ArrayList<Double> extractPrices(String jsonResponse) {
+        ArrayList<Double> prices = new ArrayList<>();
         try {
             // Converte a resposta JSON em um JSONObject
             JSONObject jsonObject = new JSONObject(jsonResponse);
@@ -52,27 +64,51 @@ public class StockApi {
             if (jsonObject.has("Time Series (1min)")) {
                 JSONObject timeSeries = jsonObject.getJSONObject("Time Series (1min)");
 
-                // Pega a chave mais recente da série temporal (o último preço)
-                String latestTime = timeSeries.keys().next();
-                JSONObject latestData = timeSeries.getJSONObject(latestTime);
-
-                // Extrai o valor do preço de fechamento ("4. close")
-                String lastPriceStr = latestData.getString("4. close");
-
-                // Converte a string para double e retorna
-                return Double.parseDouble(lastPriceStr);
+                // Percorre todos os timestamps e extrai os preços de fechamento
+                for (String timestamp : timeSeries.keySet()) {
+                    JSONObject data = timeSeries.getJSONObject(timestamp);
+                    String lastPriceStr = data.getString("4. close");
+                    prices.add(Double.parseDouble(lastPriceStr));
+                }
             } else {
                 System.out.println("Erro: A resposta da API não contém os dados esperados.");
-                return -1.0;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return -1.0; // Caso ocorra algum erro, retorna -1.0
         }
+        return prices;
     }
 
-    // Método para obter o último preço armazenado
-    public double getLastPrice() {
-        return this.lastPrice;
+    // Método para armazenar os preços no histórico de uma ação específica
+    private void storePriceHistory(String symbol, ArrayList<Double> newPrices) {
+        // Recupera o histórico atual ou cria uma nova lista
+        ArrayList<Double> history = priceHistories.getOrDefault(symbol, new ArrayList<>());
+        
+        // Adiciona todos os novos preços ao histórico
+        history.addAll(newPrices);
+
+        // Armazena o histórico atualizado no Map
+        priceHistories.put(symbol, history);
+    }
+
+    // Método para obter o histórico de preços de uma ação
+    public ArrayList<Double> getPriceHistory(String symbol) {
+        return priceHistories.getOrDefault(symbol, new ArrayList<>());
+    }
+
+    // Método para obter o último preço de uma ação
+    public Double getLastPrice(String symbol) {
+        // Recupera o histórico de preços
+        ArrayList<Double> history = priceHistories.getOrDefault(symbol, new ArrayList<>());
+
+        // Verifica se há preços armazenados
+        if (!history.isEmpty()) {
+            // Retorna o último preço
+            return history.get(history.size() - 1);
+        } else {
+            System.out.println("Erro: Não há dados de preço disponíveis para " + symbol);
+            return null;
+        }
     }
 }
+

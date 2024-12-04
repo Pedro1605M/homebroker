@@ -5,7 +5,16 @@ public class Conta{
     private Pessoa conta;
     private Double saldo;
     private  ArrayList<String> carteiraAcoes = new ArrayList();
+    private Integer id;
     
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public ArrayList<String> getCarteiraAcoes() {
         return carteiraAcoes;
     }
@@ -50,6 +59,14 @@ public class Conta{
         this.numeroDaConta = numeroDaConta;
     }
 
+    public void subtrairSaldo(double valor) {
+        if (saldo >= valor) {
+            saldo -= valor;
+        } else {
+            // Se o saldo for insuficiente, lança uma exceção ou lida com o erro de forma apropriada
+            System.out.println("Saldo insuficiente para realizar a operação.");
+        }
+    }
 
     
 }
