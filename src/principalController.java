@@ -15,13 +15,15 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.application.Application;
 
-public class principalController {
+public class principalController  {
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/sql10748012";
-    private static final String DB_USER = "root"; 
-    private static final String DB_PASSWORD = "ifsp";
+    private static final String DB_URL = "jdbc:mysql://pd2ub.h.filess.io:3307/homebroker_substance";
+    private static final String DB_USER = "homebroker_substance";
+    private static final String DB_PASSWORD = "675ff3244d016e1bca2bde49e09e4a8c35396823";
 
     @FXML
     private TextField acoes;
@@ -49,6 +51,12 @@ public class principalController {
 
     @FXML
     private Label quant;
+
+    @FXML
+    private Label grafico;
+
+    @FXML
+    private Button btn;
 
     private Conta conta; // Instância da classe Conta
     private StockApi StockApi;
@@ -126,12 +134,34 @@ public class principalController {
     }
 
     @FXML
+    void escolherAção(ActionEvent event) {
+        String siglaAPI = acoes.getText(); // Pega o símbolo da ação inserido
+        StockApi.fetchAndStoreDailyPrice(siglaAPI);
+
+        // Verifica se o campo de texto não está vazio
+        if (!siglaAPI.isEmpty()) {
+            // Instancia a classe StockChart para o gráfico de linha
+            StockChart stockChart = new StockChart(siglaAPI);
+
+            // Obtém o StackPane com o gráfico
+            StackPane chartPane = stockChart.getChartPane();
+
+            // Exibe o gráfico dentro do Label (usando um StackPane no lugar de apenas o gráfico)
+            grafico.setGraphic(chartPane);
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Erro", "Por favor, insira um símbolo válido.");
+        }
+    }
+    
+
+
+    @FXML
     void vender(ActionEvent event) {
         String siglaAPI = acoes.getText();
         Operacao op = Operacao.SELL;
 
         // Chama o método da StockApi para buscar o preço da ação
-        StockApi.fetchAndStorePrice(siglaAPI);
+        StockApi.fetchAndStoreDailyPrice(siglaAPI);
         Double precoAcao = StockApi.getLastPrice(siglaAPI); // Preço da ação
         Double precoVenda = precoAcao * quantidade; // Cálculo do valor total da venda (preço da ação * quantidade)
 
@@ -205,7 +235,7 @@ public class principalController {
         Operacao op = Operacao.BUY;
 
         // Chama o método da StockApi para buscar o preço da ação
-        StockApi.fetchAndStorePrice(siglaAPI);
+        StockApi.fetchAndStoreDailyPrice(siglaAPI);
         Double precoAcao = StockApi.getLastPrice(siglaAPI); // Preço da ação
         Double precoCompra = precoAcao * quantidade; // Cálculo do valor total da compra (preço da ação * quantidade)
 
