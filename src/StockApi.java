@@ -11,7 +11,7 @@ import java.util.Map;
 public class StockApi {
 
     // Substitua pela sua chave da API Alpha Vantage
-    public static final String API_KEY = "H2VQ0C715S0W7DRB";
+    public static final String API_KEY = "8OWQCWYEXJ9UJKCR";
 
     // Map para armazenar o histórico de preços por símbolo da ação
     private Map<String, ArrayList<Map<String, Double>>> priceHistories = new HashMap<>();
@@ -27,7 +27,7 @@ public class StockApi {
             URL url = uri.toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
-
+    
             // Lê a resposta da API
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             StringBuilder response = new StringBuilder();
@@ -36,46 +36,54 @@ public class StockApi {
                 response.append(inputLine);
             }
             in.close();
-
+    
+            // Exibe a resposta da API para depuração
+            System.out.println("Resposta da API: " + response.toString());
+    
             // Extrai todos os preços e datas da resposta JSON
             String jsonResponse = response.toString();
             ArrayList<Map<String, Double>> dailyPrices = extractDailyPricesWithDate(jsonResponse);
-
+    
             // Se houver preços válidos, armazene no histórico da ação
             if (!dailyPrices.isEmpty()) {
                 storePriceHistory(symbol, dailyPrices);
             } else {
                 System.out.println("Erro: Não há dados de preço válidos para " + symbol);
             }
-
+    
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-    // Método para extrair preços e datas a partir do JSON
+    
     private ArrayList<Map<String, Double>> extractDailyPricesWithDate(String jsonResponse) {
         ArrayList<Map<String, Double>> priceWithDates = new ArrayList<>();
         try {
             // Converte a resposta JSON em um JSONObject
             JSONObject jsonObject = new JSONObject(jsonResponse);
-
+    
             // Verifica se a chave "Time Series (Daily)" existe na resposta
             if (jsonObject.has("Time Series (Daily)")) {
                 JSONObject timeSeries = jsonObject.getJSONObject("Time Series (Daily)");
-
+    
                 // Percorre todos os timestamps e extrai a data e o preço de fechamento
                 for (String date : timeSeries.keySet()) {
                     JSONObject data = timeSeries.getJSONObject(date);
-                    String closePriceStr = data.getString("4. close");
-                    double price = Double.parseDouble(closePriceStr);
-
-                    // Cria um mapa para armazenar a data e o preço
-                    Map<String, Double> priceData = new HashMap<>();
-                    priceData.put(date, price);
-
-                    // Adiciona o mapa ao histórico
-                    priceWithDates.add(priceData);
+                    
+                    // Verifica se o campo "4. close" existe
+                    if (data.has("4. close")) {
+                        String closePriceStr = data.getString("4. close");
+                        double price = Double.parseDouble(closePriceStr);
+    
+                        // Cria um mapa para armazenar a data e o preço
+                        Map<String, Double> priceData = new HashMap<>();
+                        priceData.put(date, price);
+    
+                        // Adiciona o mapa ao histórico
+                        priceWithDates.add(priceData);
+                    } else {
+                        System.out.println("Erro: Não foi encontrado o preço de fechamento para a data " + date);
+                    }
                 }
             } else {
                 System.out.println("Erro: A resposta da API não contém os dados esperados.");
@@ -85,6 +93,7 @@ public class StockApi {
         }
         return priceWithDates;
     }
+    
 
     // Método para armazenar os preços e datas no histórico de uma ação específica
     private void storePriceHistory(String symbol, ArrayList<Map<String, Double>> newPriceData) {
@@ -111,10 +120,5 @@ public class StockApi {
             return prices.get(0).values().iterator().next();
         }
         return null; // Retorna null se não houver dados de preços para o símbolo
-    }
-
-    // Função para obter todos os símbolos de ações armazenados
-    public ArrayList<String> getAllSymbols() {
-        return new ArrayList<>(priceHistories.keySet());
     }
 }

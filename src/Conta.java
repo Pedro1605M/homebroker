@@ -1,72 +1,68 @@
 import java.util.ArrayList;
 
-public class Conta{
-    
-    private Pessoa conta;
-    private Double saldo;
-    private  ArrayList<String> carteiraAcoes = new ArrayList();
-    private Integer id;
-    
-    public Integer getId() {
-        return id;
-    }
+public class Conta {
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+private static int proximoId = 1; // Variável estática para rastrear o próximo ID
 
-    public ArrayList<String> getCarteiraAcoes() {
-        return carteiraAcoes;
-    }
+private Pessoa conta;
+private Double saldo;
+private ArrayList carteiraAcoes = new ArrayList<>();
+private Integer id;
+private Integer numeroDaConta;
 
-    public void setCarteiraAcoes(ArrayList<String> carteiraAcoes) {
-        this.carteiraAcoes = carteiraAcoes;
-    }
+public Conta() {
+this.id = proximoId++; // Atribui o ID atual e incrementa a variável estática
+this.saldo = 0.0; // Inicializa o saldo com 0.0
+}
 
-    private Integer numeroDaConta;
+public Integer getId() {
+return id;
+}
 
-    public Pessoa getConta() {
-        return conta;
-    }
+public ArrayList getCarteiraAcoes() {
+return carteiraAcoes;
+}
 
-    public void setConta(Pessoa conta) {
-        this.conta = conta;
-    }
+public void setCarteiraAcoes(ArrayList carteiraAcoes) {
+this.carteiraAcoes = carteiraAcoes;
+}
 
-    public Conta() {
-        this.saldo = 0.0; // Inicializa o saldo com 0.0
-    }
+public Pessoa getConta() {
+return conta;
+}
 
-    public Double getSaldo() {
-        return saldo;
-    }
+public void setConta(Pessoa conta) {
+this.conta = conta;
+}
 
-    public void setSaldo(Double saldo) {
-        this.saldo = saldo;
-    }
+public Double getSaldo() {
+return saldo;
+}
 
-    public void adicionarSaldo(Double valor) {
-        if (valor != null && valor > 0) {
-            this.saldo += valor;
-        }
-    }
+public void setSaldo(Double saldo) {
+this.saldo = saldo;
+}
 
-    public Integer getNumeroDaConta() {
-        return numeroDaConta;
-    }
+public void adicionarSaldo(Double valor) {
+if (valor != null && valor > 0) {
+this.saldo += valor;
+}
+}
 
-    public void setNumeroDaConta(Integer numeroDaConta) {
-        this.numeroDaConta = numeroDaConta;
-    }
+public Integer getNumeroDaConta() {
+return numeroDaConta;
+}
 
-    public void subtrairSaldo(double valor) {
-        if (saldo >= valor) {
-            saldo -= valor;
-        } else {
-            // Se o saldo for insuficiente, lança uma exceção ou lida com o erro de forma apropriada
-            System.out.println("Saldo insuficiente para realizar a operação.");
-        }
-    }
+public void setNumeroDaConta(Integer numeroDaConta) {
+this.numeroDaConta = numeroDaConta;
+}
 
-    
+public void subtrairSaldo(double valor) {
+if (saldo >= valor) {
+saldo -= valor;
+} else {
+// Se o saldo for insuficiente, lida com o erro de forma apropriada
+System.out.println("Saldo insuficiente para realizar a operação.");
+}
+}
 }

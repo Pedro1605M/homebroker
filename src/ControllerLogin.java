@@ -53,6 +53,9 @@ public class ControllerLogin {
                         showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Login realizado com sucesso!");
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("principal.fxml"));
                         Parent root = loader.load();
+                        principalController controller = loader.getController();
+                        Conta conta = new Conta();
+                        controller.setConta(conta);
                         Stage stage = new Stage();
                         stage.setScene(new Scene(root));
                         stage.setTitle("Homebroker");

@@ -17,9 +17,7 @@ CREATE TABLE accounts (
     user_id INT NOT NULL,
     balance DECIMAL(15, 2) DEFAULT 0.00, -- User's account balance
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    operations_id INT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (operations_id) REFERENCES operations(id)
 );
 
 -- Tabela Stock 

@@ -44,16 +44,14 @@ public class StockChart extends Application {
         stockApi.fetchAndStoreDailyPrice(stockSymbol);
         ArrayList<Map<String, Double>> priceHistory = stockApi.getPriceHistoryWithDate(stockSymbol);
 
-        // Ordenando os dados pela data (da mais antiga para a mais recente)
-        List<Map.Entry<String, Double>> sortedEntries = priceHistory.stream()
-                .flatMap(map -> map.entrySet().stream())
-                .sorted((entry1, entry2) -> entry1.getKey().compareTo(entry2.getKey())) // Ordenação das datas
-                .collect(Collectors.toList());
-
-        // Adicionar os dados ordenados ao gráfico de linha
-        for (Map.Entry<String, Double> entry : sortedEntries) {
-            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
-        }
+        // Adicionar os dados ordenados ao gráfico de linha (ordenando somente na exibição)
+        priceHistory.stream()
+            .flatMap(map -> map.entrySet().stream())  // Achatar o mapa para obter as entradas de data e preço
+            .sorted((entry1, entry2) -> entry1.getKey().compareTo(entry2.getKey()))  // Ordenar pela data
+            .forEach(entry -> {
+                System.out.println("Adding data: " + entry.getKey() + " - " + entry.getValue());
+                series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
+            });
 
         // Configuração da cena e do palco
         Scene scene = new Scene(lineChart, 800, 600);
@@ -83,16 +81,13 @@ public class StockChart extends Application {
         stockApi.fetchAndStoreDailyPrice(stockSymbol);
         ArrayList<Map<String, Double>> priceHistory = stockApi.getPriceHistoryWithDate(stockSymbol);
 
-        // Ordenando os dados pela data (da mais antiga para a mais recente)
-        List<Map.Entry<String, Double>> sortedEntries = priceHistory.stream()
-                .flatMap(map -> map.entrySet().stream())
-                .sorted((entry1, entry2) -> entry1.getKey().compareTo(entry2.getKey())) // Ordenação das datas
-                .collect(Collectors.toList());
-
-        // Adicionar os dados ordenados ao gráfico de linha
-        for (Map.Entry<String, Double> entry : sortedEntries) {
-            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
-        }
+        // Adicionar os dados ordenados ao gráfico de linha (ordenando somente na exibição)
+        priceHistory.stream()
+            .flatMap(map -> map.entrySet().stream())  // Achatar o mapa para obter as entradas de data e preço
+            .sorted((entry1, entry2) -> entry1.getKey().compareTo(entry2.getKey()))  // Ordenar pela data
+            .forEach(entry -> {
+                series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
+            });
 
         // Adicionando o gráfico ao StackPane
         StackPane stackPane = new StackPane();

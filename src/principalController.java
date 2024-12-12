@@ -58,6 +58,10 @@ public class principalController  {
     @FXML
     private Button btn;
 
+    @FXML
+    private Label preco;
+
+
     private Conta conta; // Instância da classe Conta
     private StockApi StockApi;
     private int quantidade = 0;
@@ -71,6 +75,7 @@ public class principalController  {
         atualizarQuantidade(); // Exibe quantidade inicial
 
     }
+    
 
     @FXML
     void depositar(ActionEvent event) {
@@ -114,18 +119,41 @@ public class principalController  {
         stage.show();
     }
 
+    public void atualizarPreco() {
+        String siglaAPI = acoes.getText(); // Pega o símbolo da ação inserido
+        if (!siglaAPI.isEmpty()) {
+            // Pega o último preço da ação
+            Double precoAcao = StockApi.getLastPrice(siglaAPI);
+            
+            // Verifica se o preço é válido
+            if (precoAcao != null) {
+                // Calcula o valor total (preço da ação * quantidade)
+                Double valorTotal = precoAcao * quantidade;
+                
+                // Exibe o valor total no Label
+                preco.setText(String.format("Preço Total: %.2f", valorTotal));
+            } else {
+                // Exibe mensagem de erro se o preço for null
+                preco.setText("Erro: Não foi possível obter o preço.");
+            }
+        }
+    }
+    
+    
     @FXML
     void mais(ActionEvent event) {
         quantidade++; // Incrementa a quantidade
-        atualizarQuantidade(); // Atualiza a exibição
+        atualizarQuantidade(); // Atualiza a exibição da quantidade
+        atualizarPreco(); // Atualiza o preço total exibido
     }
-
+    
     @FXML
     void menos(ActionEvent event) {
         if (quantidade > 0) { // Garante que a quantidade não fique negativa
             quantidade--; // Decrementa a quantidade
         }
-        atualizarQuantidade(); // Atualiza a exibição
+        atualizarQuantidade(); // Atualiza a exibição da quantidade
+        atualizarPreco(); // Atualiza o preço total exibido
     }
 
     private void atualizarQuantidade() {
@@ -177,7 +205,7 @@ public class principalController  {
                 connection.setAutoCommit(false); // Inicia uma transação
 
                 // Registrar a operação de venda
-                String sql = "INSERT INTO operations (account_id, stock_symbol, operations_type, quantity, price_per_stock, total_value) VALUES (?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO operations (account_id, stock_symbol, operation_type, quantity, price_per_stock, total_value) VALUES (?, ?, ?, ?, ?, ?)";
                 PreparedStatement statement = connection.prepareStatement(sql);
                 statement.setInt(1, conta.getId());
                 statement.setString(2, siglaAPI);
@@ -208,7 +236,7 @@ public class principalController  {
     // Método para consultar a quantidade de ações de um usuário no banco de dados
     private int verificarQuantidadeAcoes(String siglaAPI, int userId) {
         int quantidade = 0;
-        String sql = "SELECT SUM(quantity) AS total_quantity FROM operations WHERE account_id = ? AND stock_symbol = ? AND operations_type = 'BUY' GROUP BY stock_symbol";
+        String sql = "SELECT SUM(quantity) AS total_quantity FROM operations WHERE account_id = ? AND stock_symbol = ? AND operation_type = 'BUY' GROUP BY stock_symbol";
 
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -227,7 +255,10 @@ public class principalController  {
 
         return quantidade;
     }
-
+    public void setConta(Conta conta) {
+        this.conta = conta;
+        atualizarSaldo(); // Atualiza o saldo na interface com os dados da conta configurada
+        }
     @FXML
     void comprar(ActionEvent event) throws IOException {
         // Recupera o símbolo da ação inserido pelo usuário e a quantidade de ações desejada
@@ -247,7 +278,7 @@ public class principalController  {
                 connection.setAutoCommit(false); // Inicia uma transação
 
                 // Registrar a operação de compra
-                String sql = "INSERT INTO operations (account_id, stock_symbol, operations_type, quantity, price_per_stock, total_value) VALUES (?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO operations (account_id, stock_symbol, operation_type, quantity, price_per_stock, total_value) VALUES (?, ?, ?, ?, ?, ?)";
                 PreparedStatement statement = connection.prepareStatement(sql);
                 statement.setInt(1, conta.getId()); // ID da conta
                 statement.setString(2, siglaAPI); // Símbolo da ação

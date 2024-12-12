@@ -50,10 +50,12 @@ public class ControllerCadastro {
         // Database operation
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             String sql = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
+            String sql2 = "INSERT INTO accounts (user_id, balance) VALUES (?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, name);
                 statement.setString(2, email);
                 statement.setString(3, password);
+            
 
                 int rowsInserted = statement.executeUpdate();
                 if (rowsInserted > 0) {
@@ -68,6 +70,11 @@ public class ControllerCadastro {
                     showAlert(Alert.AlertType.ERROR, "Erro", "Nenhum registro foi inserido.");
                 }
             }
+            try (PreparedStatement statement = connection.prepareStatement(sql2)) {
+                statement.setString(1, name);
+                statement.setString(2, email);
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Erro", "Falha ao cadastrar usuário: " + e.getMessage());
