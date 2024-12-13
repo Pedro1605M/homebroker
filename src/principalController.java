@@ -105,16 +105,31 @@ public class principalController  {
     }
 
     private void atualizarSaldo() throws SQLException {
-        // Exibe o saldo atual formatado
+        // Exibe o saldo atual formatado na interface
         labelSaldo.setText(String.format("%.2f", conta.getSaldo()));
+    
+        // Atualiza o saldo no banco de dados
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            String sqlUpdateBalance = "UPDATE INTO accounts (balance) VALUES (?)";
-            try (PreparedStatement statement = connection.prepareStatement(sqlUpdateBalance, PreparedStatement.RETURN_GENERATED_KEYS)) {
-                statement.setDouble(1, conta.getSaldo());
+            String sqlUpdateBalance = "UPDATE accounts SET balance = ? WHERE id = ?";
+            try (PreparedStatement statement = connection.prepareStatement(sqlUpdateBalance)) {
+                // Configura os parâmetros do comando SQL
+                statement.setInt(1, conta.getId()); 
+                statement.setDouble(2, conta.getSaldo()); // Novo saldo
+                
+                // Executa o comando SQL
+                int rowsUpdated = statement.executeUpdate();
+    
+                // Opcional: Verifica se a atualização foi bem-sucedida
+                if (rowsUpdated > 0) {
+                    System.out.println("Saldo atualizado com sucesso no banco de dados.");
+                } else {
+                    System.out.println("Nenhuma linha foi atualizada. Verifique o ID do usuário.");
+                }
+            }
         }
     }
-    }
-
+    
+    
     @FXML
     void irpratelaMenu(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Menu.fxml"));

@@ -9,14 +9,24 @@ private Double saldo;
 private ArrayList carteiraAcoes = new ArrayList<>();
 private Integer id;
 
+public Integer getId() {
+    return id;
+}
+
+
+
+public void setId(Integer id) {
+    this.id = id;
+}
+
+
+
 public Conta() {
 this.id = proximoId++; 
 this.saldo = 0.0; // Inicializa o saldo com 0.0
 }
 
-public Integer getId() {
-return id;
-}
+
 
 public ArrayList getCarteiraAcoes() {
 return carteiraAcoes;

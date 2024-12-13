@@ -30,6 +30,8 @@ public class ControllerLogin {
     @FXML
     private Button entrar_id;
 
+    private Conta conta;
+
     @FXML
     void entrar(ActionEvent event) throws IOException {
         String email = campoemail.getText();
@@ -48,8 +50,17 @@ public class ControllerLogin {
                 statement.setString(1, email);
                 statement.setString(2, senha);
 
+
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
+                        if (resultSet.next()) {
+                            int userId = resultSet.getInt("id");
+                            double balance = resultSet.getDouble("balance");
+                
+                            // Configure os dados da conta
+                            conta.setId(userId); // Define o ID na conta
+                            conta.setSaldo(balance); // Define o saldo inicial
+                        }
                         showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Login realizado com sucesso!");
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("principal.fxml"));
                         Parent root = loader.load();

@@ -11,7 +11,8 @@ import java.util.Map;
 public class StockApi {
 
     // Substitua pela sua chave da API Alpha Vantage
-    public static final String API_KEY = "8OWQCWYEXJ9UJKCR";
+    // public static final String API_KEY = "8OWQCWYEXJ9UJKCR";
+    public static final String API_KEY = "TRSY7U3SUNU9AZ2X";
     private static final long CACHE_EXPIRATION_TIME = 60 * 60 * 1000; // 1 hora em milissegundos
 
 
@@ -49,8 +50,8 @@ public class StockApi {
             }
             in.close();
 
-            /* System.out.println("Resposta da API:");
-            System.out.println(response.toString()); */
+            System.out.println("Resposta da API:");
+            System.out.println(response.toString());
     
             // Extrai todos os preços e datas da resposta JSON
             String jsonResponse = response.toString();

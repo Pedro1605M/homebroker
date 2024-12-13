@@ -36,8 +36,11 @@ public class ControllerCadastro {
     @FXML
     private Button login;
 
+
     @FXML
     void cadastrar(ActionEvent event) throws IOException {
+
+        
         String name = campoNome.getText();
         String email = campoEmail.getText();
         String password = campoSenha.getText();
