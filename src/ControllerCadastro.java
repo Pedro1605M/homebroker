@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class ControllerCadastro {
@@ -41,38 +42,50 @@ public class ControllerCadastro {
         String email = campoEmail.getText();
         String password = campoSenha.getText();
 
-        // Input validation
+        // Validação de entrada
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.ERROR, "Erro", "Todos os campos devem ser preenchidos.");
             return;
         }
 
-        // Database operation
+        // Operação no banco de dados
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            String sql = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
-            String sql2 = "INSERT INTO accounts (user_id, balance) VALUES (?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            String sqlInsertUser = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
+            String sqlInsertAccount = "INSERT INTO accounts (user_id, balance) VALUES (?, ?)";
+
+            // Inserir usuário e obter o ID gerado
+            try (PreparedStatement statement = connection.prepareStatement(sqlInsertUser, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 statement.setString(1, name);
                 statement.setString(2, email);
                 statement.setString(3, password);
-            
 
                 int rowsInserted = statement.executeUpdate();
+
                 if (rowsInserted > 0) {
-                    showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Usuário cadastrado com sucesso!");
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
-                    Parent root = loader.load();
-                    Stage stage = new Stage();
-                    stage.setScene(new Scene(root));
-                    stage.setTitle("Login");
-                    stage.show();
+                    // Obter o ID gerado automaticamente
+                    try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            int userId = generatedKeys.getInt(1); // Obtém o ID gerado
+
+                            // Inserir na tabela accounts com o user_id
+                            try (PreparedStatement accountStatement = connection.prepareStatement(sqlInsertAccount)) {
+                                accountStatement.setInt(1, userId);
+                                accountStatement.setDouble(2, 0.0); // Define o saldo inicial como 0
+                                accountStatement.executeUpdate();
+                            }
+
+                            showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Usuário cadastrado com sucesso!");
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
+                            Parent root = loader.load();
+                            Stage stage = new Stage();
+                            stage.setScene(new Scene(root));
+                            stage.setTitle("Login");
+                            stage.show();
+                        }
+                    }
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Erro", "Nenhum registro foi inserido.");
                 }
-            }
-            try (PreparedStatement statement = connection.prepareStatement(sql2)) {
-                statement.setString(1, name);
-                statement.setString(2, email);
             }
 
         } catch (SQLException e) {
@@ -81,7 +94,7 @@ public class ControllerCadastro {
         }
     }
 
-    // Utility method to show alerts
+    // Método utilitário para exibir alertas
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

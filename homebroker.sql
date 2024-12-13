@@ -20,12 +20,6 @@ CREATE TABLE accounts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 );
 
--- Tabela Stock 
-CREATE TABLE stocks (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    symbol VARCHAR(10) NOT NULL UNIQUE, -- Stock ticker symbol (e.g., AAPL, TSLA)
-    name VARCHAR(100) NOT NULL          -- Full stock name (e.g., Apple Inc.)
-);
 
 -- Tabela para historico de operacoes
 CREATE TABLE operations (
@@ -38,5 +32,4 @@ CREATE TABLE operations (
     total_value DECIMAL(15, 2) NOT NULL,     -- quantity * price_per_stock
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
-    FOREIGN KEY (stock_symbol) REFERENCES stocks(symbol) ON DELETE SET NULL
 );

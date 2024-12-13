@@ -8,10 +8,9 @@ private Pessoa conta;
 private Double saldo;
 private ArrayList carteiraAcoes = new ArrayList<>();
 private Integer id;
-private Integer numeroDaConta;
 
 public Conta() {
-this.id = proximoId++; // Atribui o ID atual e incrementa a variável estática
+this.id = proximoId++; 
 this.saldo = 0.0; // Inicializa o saldo com 0.0
 }
 
@@ -49,13 +48,7 @@ this.saldo += valor;
 }
 }
 
-public Integer getNumeroDaConta() {
-return numeroDaConta;
-}
 
-public void setNumeroDaConta(Integer numeroDaConta) {
-this.numeroDaConta = numeroDaConta;
-}
 
 public void subtrairSaldo(double valor) {
 if (saldo >= valor) {

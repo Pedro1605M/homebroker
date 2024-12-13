@@ -12,14 +12,26 @@ public class StockApi {
 
     // Substitua pela sua chave da API Alpha Vantage
     public static final String API_KEY = "8OWQCWYEXJ9UJKCR";
+    private static final long CACHE_EXPIRATION_TIME = 60 * 60 * 1000; // 1 hora em milissegundos
+
 
     // Map para armazenar o histórico de preços por símbolo da ação
     private Map<String, ArrayList<Map<String, Double>>> priceHistories = new HashMap<>();
+    private Map<String, Long> lastFetchTimes = new HashMap<>(); // Para armazenar a última vez que o preço foi obtido
+
 
     // Método para buscar e armazenar preços diários
     public void fetchAndStoreDailyPrice(String symbol) {
         try {
-            // Monta a URL da requisição para a Alpha Vantage
+            long currentTime = System.currentTimeMillis();
+    
+            // Verifica se já temos o histórico e se o cache ainda é válido
+            if (priceHistories.containsKey(symbol) && (currentTime - lastFetchTimes.get(symbol)) < CACHE_EXPIRATION_TIME) {
+                System.out.println("Usando cache para o símbolo " + symbol);
+                return; // Se o cache for válido, não faz a requisição
+            }
+    
+            // Caso contrário, faz a requisição para a API
             String urlString = String.format(
                 "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%s&apikey=%s",
                 symbol, API_KEY);
@@ -36,9 +48,9 @@ public class StockApi {
                 response.append(inputLine);
             }
             in.close();
-    
-            // Exibe a resposta da API para depuração
-            System.out.println("Resposta da API: " + response.toString());
+
+            /* System.out.println("Resposta da API:");
+            System.out.println(response.toString()); */
     
             // Extrai todos os preços e datas da resposta JSON
             String jsonResponse = response.toString();
@@ -47,6 +59,7 @@ public class StockApi {
             // Se houver preços válidos, armazene no histórico da ação
             if (!dailyPrices.isEmpty()) {
                 storePriceHistory(symbol, dailyPrices);
+                lastFetchTimes.put(symbol, currentTime); // Atualiza o tempo da última requisição
             } else {
                 System.out.println("Erro: Não há dados de preço válidos para " + symbol);
             }
@@ -55,6 +68,7 @@ public class StockApi {
             e.printStackTrace();
         }
     }
+    
     
     private ArrayList<Map<String, Double>> extractDailyPricesWithDate(String jsonResponse) {
         ArrayList<Map<String, Double>> priceWithDates = new ArrayList<>();
@@ -81,8 +95,6 @@ public class StockApi {
     
                         // Adiciona o mapa ao histórico
                         priceWithDates.add(priceData);
-                    } else {
-                        System.out.println("Erro: Não foi encontrado o preço de fechamento para a data " + date);
                     }
                 }
             } else {
@@ -112,7 +124,6 @@ public class StockApi {
         return priceHistories.getOrDefault(symbol, new ArrayList<>());
     }
 
-    // Função para pegar o último preço de uma ação
     public Double getLastPrice(String symbol) {
         ArrayList<Map<String, Double>> prices = priceHistories.get(symbol);
         if (prices != null && !prices.isEmpty()) {
@@ -121,4 +132,5 @@ public class StockApi {
         }
         return null; // Retorna null se não houver dados de preços para o símbolo
     }
+    
 }
