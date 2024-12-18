@@ -13,4 +13,7 @@ public enum Operacao {
                 return "Operação desconhecida";
         }
     }
+    
+
+    
 }

@@ -25,6 +25,20 @@ public class principalController  {
     private static final String DB_USER = "homebroker_substance";
     private static final String DB_PASSWORD = "675ff3244d016e1bca2bde49e09e4a8c35396823";
 
+    public static String getDbUrl() {
+        return DB_URL;
+    }
+
+
+    public static String getDbUser() {
+        return DB_USER;
+    }
+
+
+    public static String getDbPassword() {
+        return DB_PASSWORD;
+    }
+
     @FXML
     private TextField acoes;
 
