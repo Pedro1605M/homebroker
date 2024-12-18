@@ -35,35 +35,49 @@ public class minhaContaController {
     @FXML
     private Label saldo;
 
-    // Método para carregar os dados do usuário do banco de dados
-    private void carregarDadosUsuario(int userId) {
-        String sql = "SELECT name, email FROM users WHERE id = ?";
-        
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-             PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            // Definir o ID do usuário na consulta
-            statement.setInt(1, userId);
+    // Método chamado para inicializar a tela (após a criação da conta ou login)
+    public void initialize() {
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String query = "SELECT * FROM users WHERE id = ?";
+            String query2 = "SELECT * FROM accounts WHERE id = ?";
             
-            // Executar a consulta
-            ResultSet resultSet = statement.executeQuery();
-            
-            // Verificar se o usuário foi encontrado
-            if (resultSet.next()) {
-                String nome = resultSet.getString("name");
-                String email = resultSet.getString("email");
+            // Primeiro PreparedStatement para usuários
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+                 PreparedStatement preparedStatement2 = connection.prepareStatement(query2)) {
                 
-                // Atualizar os Labels com o nome e e-mail
-                exibirnome.setText(nome);
-                exibirEmail.setText(email);
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Erro", "Usuário não encontrado.");
+                preparedStatement.setInt(1, Sessao.getIdUsuario());
+                preparedStatement2.setInt(1, Conta.getId());
+                
+                try (ResultSet resultSet = preparedStatement.executeQuery();
+                     ResultSet resultSet2 = preparedStatement2.executeQuery()) {
+                     
+                    if (resultSet.next()) {
+                        String nome = resultSet.getString("name");
+                        String email = resultSet.getString("email");
+                        exibirnome.setText(nome);
+                        exibirEmail.setText(email);
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Erro", "Usuário não encontrado.");
+                        return;
+                    }
+                    
+                    if (resultSet2.next()) {
+                        Double balance = resultSet2.getDouble("balance");
+                        saldo.setText(String.format("%.2f", balance));
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Erro", "Conta não encontrada.");
+                    }
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Erro", "Ocorreu um erro ao carregar os dados do usuário.");
         }
     }
+    
+
+
 
     @FXML
     void irpratelaMenu(ActionEvent event) throws IOException {
@@ -95,10 +109,5 @@ public class minhaContaController {
         alert.showAndWait();
     }
 
-    // Método chamado para inicializar a tela (após a criação da conta ou login)
-    public void initialize() {
-        // Suponha que você tenha o ID do usuário armazenado em algum lugar, como em uma sessão ou variável global
-        int userId = 1; // Exemplo, você deve obter o ID real do usuário
-        carregarDadosUsuario(userId); // Carregar e exibir os dados
-    }
+    
 }

@@ -4,19 +4,25 @@ public class Conta {
 
 private static int proximoId = 1; // Variável estática para rastrear o próximo ID
 
-private Pessoa conta;
 private Double saldo;
 private ArrayList carteiraAcoes = new ArrayList<>();
-private Integer id;
+private static Integer id;
+
+public static Integer getId() {
+    return id;
+}
+
+
+public static void setId(Integer id) {
+    Conta.id = id;
+}
+
 
 public Conta() {
 this.id = proximoId++; 
-this.saldo = 0.0; // Inicializa o saldo com 0.0
+this.saldo = 0.00; // Inicializa o saldo com 0.0
 }
 
-public Integer getId() {
-return id;
-}
 
 public ArrayList getCarteiraAcoes() {
 return carteiraAcoes;
@@ -26,13 +32,6 @@ public void setCarteiraAcoes(ArrayList carteiraAcoes) {
 this.carteiraAcoes = carteiraAcoes;
 }
 
-public Pessoa getConta() {
-return conta;
-}
-
-public void setConta(Pessoa conta) {
-this.conta = conta;
-}
 
 public Double getSaldo() {
 return saldo;
@@ -58,4 +57,5 @@ saldo -= valor;
 System.out.println("Saldo insuficiente para realizar a operação.");
 }
 }
+
 }

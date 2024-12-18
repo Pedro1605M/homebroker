@@ -36,6 +36,8 @@ public class ControllerCadastro {
     @FXML
     private Button login;
 
+    private Conta conta;
+
     @FXML
     void cadastrar(ActionEvent event) throws IOException {
         String name = campoNome.getText();
@@ -66,6 +68,8 @@ public class ControllerCadastro {
                     try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                         if (generatedKeys.next()) {
                             int userId = generatedKeys.getInt(1); // Obtém o ID gerado
+                            conta = new Conta();
+                            Conta.setId(userId);
 
                             // Inserir na tabela accounts com o user_id
                             try (PreparedStatement accountStatement = connection.prepareStatement(sqlInsertAccount)) {

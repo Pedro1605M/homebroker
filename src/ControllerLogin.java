@@ -50,6 +50,8 @@ public class ControllerLogin {
 
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
+                        Sessao.setNomeUsuario(resultSet.getString("name"));
+                        Sessao.setIdUsuario(resultSet.getInt("id"));
                         showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Login realizado com sucesso!");
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("principal.fxml"));
                         Parent root = loader.load();

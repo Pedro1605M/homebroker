@@ -66,16 +66,69 @@ public class principalController  {
     private StockApi StockApi;
     private int quantidade = 0;
     
-
+    
     @FXML
     public void initialize() throws SQLException {
-        conta = new Conta(); // Inicializa a conta quando o controlador é carregado
-        StockApi = new StockApi();
-        atualizarSaldo(); // Atualiza o saldo na interface
-        atualizarQuantidade(); // Exibe quantidade inicial
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String query = "SELECT * FROM accounts WHERE id = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, Sessao.getIdUsuario()); // Substitua pelo ID do usuário logado
 
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                // Verifica se a conta já foi criada
+                if (conta == null) {
+                    conta = new Conta();  // Cria uma nova conta caso não tenha sido inicializada
+                }
+                Conta.setId(resultSet.getInt("id"));
+                conta.setSaldo(resultSet.getDouble("balance")); // Carrega o saldo diretamente do banco de dados
+
+                // Atualiza o saldo na interface
+                atualizarSaldoTotal();
+            } else {
+                System.err.println("Conta não encontrada no banco de dados.");
+            }
+        }
+
+        // Inicializa a API de ações, se necessário
+        if (StockApi == null) {
+            StockApi = new StockApi();
+        }
+
+        // Atualiza os valores exibidos na interface
+        atualizarQuantidade();
     }
+
+
     
+    @SuppressWarnings("static-access")
+private void atualizarSaldoTotal() throws SQLException {
+    // Exibe o saldo atual formatado na label
+    labelSaldo.setText(String.format("%.2f", conta.getSaldo()));
+    
+    // Atualiza o saldo no banco de dados
+    try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+        String sqlUpdateBalance = "UPDATE accounts SET balance = ? WHERE id = ?";
+        
+        try (PreparedStatement statement = connection.prepareStatement(sqlUpdateBalance)) {
+            // Define os parâmetros para o PreparedStatement
+            statement.setDouble(1, conta.getSaldo()); // Define o saldo
+            statement.setInt(2, conta.getId()); // Define o ID da conta
+            
+            // Executa o comando UPDATE
+            int rowsUpdated = statement.executeUpdate();
+            
+            // Verifica se a atualização foi bem-sucedida
+            if (rowsUpdated > 0) {
+                System.out.println("Saldo atualizado com sucesso!");
+            } else {
+                System.err.println("Nenhuma conta foi encontrada para atualizar o saldo.");
+            }
+        }
+    }
+}
+
 
     @FXML
     void depositar(ActionEvent event) throws SQLException {
@@ -84,15 +137,37 @@ public class principalController  {
             String valorDeposito = deposito.getText();
             Double valor = Double.parseDouble(valorDeposito);
 
-            // Adiciona o valor ao saldo da conta
-            conta.adicionarSaldo(valor);
+            // Verifica se o valor é positivo
+            if (valor <= 0) {
+                showAlert(Alert.AlertType.ERROR, "Erro", "O valor do depósito deve ser positivo.");
+                return;
+            }
 
-            // Atualiza o saldo exibido
-            atualizarSaldo();
-            showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Seu depósito foi feito corretamente.");
+            // Atualiza o saldo no banco de dados
+            try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String updateQuery = "UPDATE accounts SET balance = balance + ? WHERE user_id = ?";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                    preparedStatement.setDouble(1, valor);
+                    preparedStatement.setInt(2, Sessao.getIdUsuario());
+
+                    int rowsUpdated = preparedStatement.executeUpdate();
+                    if (rowsUpdated > 0) {
+                        // Atualiza a interface e exibe mensagem de sucesso
+                        conta.adicionarSaldo(valor); // Atualiza na instância local
+                        atualizarSaldoTotal(); // Atualiza o saldo exibido na tela
+                        showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Seu depósito foi realizado corretamente.");
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Erro", "Não foi possível atualizar o saldo no banco de dados.");
+                    }
+                }
+            }
         } catch (NumberFormatException e) {
             // Caso o valor inserido não seja numérico, exibe mensagem de erro
-            showAlert(Alert.AlertType.ERROR, "Erro", "Não foi possível fazer o depósito.");
+            showAlert(Alert.AlertType.ERROR, "Erro", "Digite um valor numérico válido.");
+        } catch (SQLException e) {
+            // Tratar erros de SQL
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Erro", "Erro ao acessar o banco de dados.");
         }
     }
 
@@ -104,16 +179,8 @@ public class principalController  {
         alert.showAndWait();
     }
 
-    private void atualizarSaldo() throws SQLException {
-        // Exibe o saldo atual formatado
-        labelSaldo.setText(String.format("%.2f", conta.getSaldo()));
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            String sqlUpdateBalance = "UPDATE INTO accounts (balance) VALUES (?)";
-            try (PreparedStatement statement = connection.prepareStatement(sqlUpdateBalance, PreparedStatement.RETURN_GENERATED_KEYS)) {
-                statement.setDouble(1, conta.getSaldo());
-        }
-    }
-    }
+    
+    
 
     @FXML
     void irpratelaMenu(ActionEvent event) throws IOException {
@@ -242,7 +309,7 @@ public class principalController  {
                 connection.commit();
                 
                 // Atualiza a interface com o novo saldo e a quantidade de ações
-                atualizarSaldo();
+                atualizarSaldoTotal();
                 quantidade = 0; // Reseta a quantidade de ações na interface
                 atualizarQuantidade();
                 showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Venda realizada com sucesso!");
@@ -282,7 +349,7 @@ public class principalController  {
     }
     public void setConta(Conta conta) throws SQLException {
         this.conta = conta;
-        atualizarSaldo(); // Atualiza o saldo na interface com os dados da conta configurada
+        atualizarSaldoTotal(); // Atualiza o saldo na interface com os dados da conta configurada
         }
         @FXML
         void comprar(ActionEvent event) throws IOException {
@@ -318,7 +385,7 @@ public class principalController  {
                     conta.subtrairSaldo(precoCompra);
         
                     // Atualiza o saldo exibido na interface
-                    atualizarSaldo();
+                    atualizarSaldoTotal();
         
                     // Comita a transação
                     connection.commit();
