@@ -59,7 +59,7 @@
       </Button>
       <Text fill="WHITE" layoutX="475.0" layoutY="36.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Saldo:" />
       <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0" layoutX="-363.0" layoutY="-132.0" stroke="BLACK" strokeType="INSIDE" width="200.0" />
-      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#2f3f4b" height="30.0" layoutX="513.0" layoutY="16.0" stroke="BLACK" strokeType="INSIDE" width="99.0" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="30.0" layoutX="513.0" layoutY="16.0" stroke="BLACK" strokeType="INSIDE" width="99.0" />
       <Button fx:id="menu" layoutX="22.0" layoutY="19.0" mnemonicParsing="false" onAction="#irpratelaMenu" text="Menu" />
       <Button fx:id="depositar" layoutX="483.0" layoutY="132.0" mnemonicParsing="false" onAction="#depositar" prefHeight="41.0" prefWidth="130.0" style="-fx-background-color: grey; -fx-background-radius: 20px;" text="Depositar" textFill="WHITE">
          <font>
@@ -70,12 +70,12 @@
       <Button fx:id="btnMais" layoutX="488.0" layoutY="229.0" mnemonicParsing="false" onAction="#mais" prefHeight="41.0" prefWidth="54.0" style="-fx-background-color: #2f3f4b;" text="+" textFill="#bfb9b9" />
       <Button fx:id="btnMenos" layoutX="555.0" layoutY="229.0" mnemonicParsing="false" onAction="#menos" prefHeight="41.0" prefWidth="54.0" style="-fx-background-color: #2f3f4b;" text="_" textFill="WHITE" />
       <Label fx:id="labelSaldo" layoutX="549.0" layoutY="23.0" />
-      <TextField fx:id="acoes" layoutX="22.0" layoutY="72.0" prefHeight="25.0" prefWidth="137.0" promptText="Escolher a ação" style="-fx-background-radius: 20px; -fx-background-color: #2f3f4b;" />
-      <TextField fx:id="deposito" layoutX="483.0" layoutY="85.0" prefHeight="30.0" prefWidth="130.0" promptText="\$ deposito" style="-fx-background-radius: 20px; -fx-background-color: #2f3f4b;" />
-      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#2f3f4b" height="20.0" layoutX="501.0" layoutY="201.0" stroke="BLACK" strokeType="INSIDE" width="99.0" />
+      <TextField fx:id="acoes" layoutX="22.0" layoutY="72.0" prefHeight="25.0" prefWidth="137.0" promptText="Escolher a ação" style="-fx-background-radius: 20px; -fx-background-color: #fffff;" />
+      <TextField fx:id="deposito" layoutX="483.0" layoutY="85.0" prefHeight="30.0" prefWidth="130.0" promptText="\$ deposito" style="-fx-background-radius: 20px;" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="20.0" layoutX="501.0" layoutY="201.0" stroke="BLACK" strokeType="INSIDE" width="99.0" />
+      <Label fx:id="preco" layoutX="530.0" layoutY="405.0" prefHeight="16.0" prefWidth="17.0" textFill="WHITE" />
       <Label fx:id="quant" layoutX="546.0" layoutY="203.0" />
       <Button fx:id="btn" layoutX="60.0" layoutY="103.0" mnemonicParsing="false" onAction="#escolherAção" text="escolher" />
       <Label fx:id="grafico" layoutX="22.0" layoutY="146.0" prefHeight="284.0" prefWidth="408.0" />
-      <Label fx:id="preco" layoutX="530.0" layoutY="405.0" />
    </children>
 </AnchorPane>
