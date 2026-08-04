@@ -21,35 +21,41 @@ public class menuControler {
 
     @FXML
     void irparaHistorico(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("historico.fxml"));
-        Parent root = loader.load();
-        Stage stage = new Stage();
-        stage.setScene(new Scene(root));
-        stage.setTitle("Historico");
-        stage.show();
+        trocarTela(event, "historico.fxml", "Histórico");
     }
 
     @FXML
     void irparaMinhaConta(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Minha_conta.fxml"));
-        Parent root = loader.load();
-        Stage stage = new Stage();
-        stage.setScene(new Scene(root));
-        stage.setTitle("Minha conta");
-        stage.show();
+        trocarTela(event, "Minha_conta.fxml", "Minha Conta");
     }
 
     @FXML
     void irparatelaPrincipal(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("principal.fxml"));
         Parent root = loader.load();
-        Stage stage = new Stage();
+
+        // Restaura a conta a partir da sessão para não zerar o saldo
+        if (Sessao.isLogado()) {
+            Conta contaAtual = new Conta();
+            contaAtual.setId(Sessao.getAccountId());
+            contaAtual.setSaldo(Sessao.getSaldo());
+            principalController controller = loader.getController();
+            controller.setConta(contaAtual);
+        }
+
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
         stage.setTitle("Homebroker");
         stage.show();
     }
 
+    /** Reutiliza a janela atual trocando apenas a cena — sem abrir nova janela. */
+    private void trocarTela(ActionEvent event, String fxml, String titulo) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
+        Parent root = loader.load();
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        stage.setScene(new Scene(root));
+        stage.setTitle(titulo);
+        stage.show();
+    }
 }
-
-
-

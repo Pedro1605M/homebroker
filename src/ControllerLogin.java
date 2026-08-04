@@ -17,10 +17,6 @@ import javafx.stage.Stage;
 
 public class ControllerLogin {
 
-    private static final String DB_URL = "jdbc:mysql://pd2ub.h.filess.io:3307/homebroker_substance";
-    private static final String DB_USER = "homebroker_substance";
-    private static final String DB_PASSWORD = "675ff3244d016e1bca2bde49e09e4a8c35396823";
-
     @FXML
     private TextField campoemail;
 
@@ -44,30 +40,32 @@ public class ControllerLogin {
         }
 
         // Operação de banco de dados
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String sql = "SELECT u.id AS user_id, a.id AS account_id, a.balance FROM users u JOIN accounts a ON u.id = a.user_id WHERE u.email = ? AND u.password = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, email);
                 statement.setString(2, senha);
 
-
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
-                        if (resultSet.next()) {
-                            int userId = resultSet.getInt("id");
-                            double balance = resultSet.getDouble("balance");
-                
-                            // Configure os dados da conta
-                            conta.setId(userId); // Define o ID na conta
-                            conta.setSaldo(balance); // Define o saldo inicial
-                        }
+                        int userId    = resultSet.getInt("user_id");
+                        int accountId = resultSet.getInt("account_id");
+                        double balance = resultSet.getDouble("balance");
+
+                        Conta contaObj = new Conta();
+                        contaObj.setId(accountId);
+                        contaObj.setSaldo(balance);
+
+                        // Inicia a sessão global para acesso em qualquer tela
+                        Sessao.iniciarSessao(userId, accountId, email, email, balance);
+
                         showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Login realizado com sucesso!");
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("principal.fxml"));
                         Parent root = loader.load();
                         principalController controller = loader.getController();
-                        Conta conta = new Conta();
-                        controller.setConta(conta);
-                        Stage stage = new Stage();
+                        controller.setConta(contaObj);
+                        // Reutiliza a janela atual — não abre nova
+                        Stage stage = (Stage) campoemail.getScene().getWindow();
                         stage.setScene(new Scene(root));
                         stage.setTitle("Homebroker");
                         stage.show();

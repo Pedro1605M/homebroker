@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,103 +10,321 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import javafx.application.Application;
 
-public class principalController  {
+public class principalController {
 
-    private static final String DB_URL = "jdbc:mysql://pd2ub.h.filess.io:3307/homebroker_substance";
-    private static final String DB_USER = "homebroker_substance";
-    private static final String DB_PASSWORD = "675ff3244d016e1bca2bde49e09e4a8c35396823";
+    // Criamos uma URL direta para o banco de dados
+    private static final String DB_URL = "jdbc:sqlite:homebroker.db";
 
-    public static String getDbUrl() {
-        return DB_URL;
-    }
+    @FXML private TextField acoes;
+    @FXML private Button btnComprar;
+    @FXML private Button btnMais;
+    @FXML private Button btnMenos;
+    @FXML private Button depositar;
+    @FXML private TextField deposito;
+    @FXML private Button menu;
+    @FXML private Label labelSaldo;
+    @FXML private Label quant;
+    @FXML private Label grafico;
+    @FXML private Button btn;
+    @FXML private Label preco;
 
-
-    public static String getDbUser() {
-        return DB_USER;
-    }
-
-
-    public static String getDbPassword() {
-        return DB_PASSWORD;
-    }
-
-    @FXML
-    private TextField acoes;
-
-    @FXML
-    private Button btnComprar;
-
-    @FXML
-    private Button btnMais;
-
-    @FXML
-    private Button btnMenos;
-
-    @FXML
-    private Button depositar;
-
-    @FXML
-    private TextField deposito;
-
-    @FXML
-    private Button menu;
-
-    @FXML
-    private Label labelSaldo;
-
-    @FXML
-    private Label quant;
-
-    @FXML
-    private Label grafico;
-
-    @FXML
-    private Button btn;
-
-    @FXML
-    private Label preco;
-
-
-    private Conta conta; // Instância da classe Conta
+    private Conta conta;
     private StockApi StockApi;
     private int quantidade = 0;
-    
+    private Double precoAtual = null;
 
     @FXML
-    public void initialize() throws SQLException {
-        conta = new Conta(); // Inicializa a conta quando o controlador é carregado
+    public void initialize() {
         StockApi = new StockApi();
-        atualizarSaldo(); // Atualiza o saldo na interface
-        atualizarQuantidade(); // Exibe quantidade inicial
 
+        // Carrega os dados da sessão ativa (definida no login)
+        if (Sessao.isLogado()) {
+            conta = new Conta();
+            conta.setId(Sessao.getAccountId());
+            conta.setSaldo(Sessao.getSaldo());
+        } else {
+            conta = new Conta();
+        }
+
+        atualizarSaldo();
+        atualizarQuantidade();
     }
-    
+
+    public void setConta(Conta conta) {
+        this.conta = conta;
+        if (conta != null) {
+            Sessao.setAccountId(conta.getId());
+            Sessao.setSaldo(conta.getSaldo());
+        }
+        atualizarSaldo();
+    }
 
     @FXML
-    void depositar(ActionEvent event) throws SQLException {
+    void depositar(ActionEvent event) {
         try {
-            // Lê o valor do campo de texto
-            String valorDeposito = deposito.getText();
-            Double valor = Double.parseDouble(valorDeposito);
-
-            // Adiciona o valor ao saldo da conta
+            Double valor = Double.parseDouble(deposito.getText());
             conta.adicionarSaldo(valor);
-
-            // Atualiza o saldo exibido
             atualizarSaldo();
             showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Seu depósito foi feito corretamente.");
         } catch (NumberFormatException e) {
-            // Caso o valor inserido não seja numérico, exibe mensagem de erro
             showAlert(Alert.AlertType.ERROR, "Erro", "Não foi possível fazer o depósito.");
         }
+    }
+
+    private void atualizarSaldo() {
+        if (conta != null) {
+            labelSaldo.setText(String.format("%.2f", conta.getSaldo()));
+        }
+
+        if (conta != null && conta.getId() != null && conta.getId() > 0) {
+            String sqlUpdateBalance = "UPDATE accounts SET balance = ? WHERE id = ?";
+            try (Connection conn = DatabaseManager.getConnection();
+                 PreparedStatement statement = conn.prepareStatement(sqlUpdateBalance)) {
+
+                statement.setDouble(1, conta.getSaldo());
+                statement.setInt(2, conta.getId());
+                statement.executeUpdate();
+
+                // Mantém a Sessão sincronizada
+                Sessao.setSaldo(conta.getSaldo());
+
+            } catch (SQLException e) {
+                System.out.println("Erro ao atualizar saldo: " + e.getMessage());
+            }
+        }
+    }
+
+    @FXML
+    void irpratelaMenu(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("Menu.fxml"));
+        Parent root = loader.load();
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        stage.setScene(new Scene(root));
+        stage.setTitle("Menu");
+        stage.show();
+    }
+
+    public void atualizarPreco() {
+        String siglaAPI = acoes.getText(); 
+        if (!siglaAPI.isEmpty()) {
+            if (precoAtual == null) {
+                precoAtual = StockApi.getLastPrice(siglaAPI);
+            }
+            if (precoAtual != null) {
+                Double valorTotal = precoAtual * quantidade;
+                preco.setText(String.format("Preço Total: %.2f", valorTotal));
+            } else {
+                preco.setText("Erro: Não foi possível obter o preço.");
+            }
+        }
+    }
+
+    @FXML
+    void mais(ActionEvent event) {
+        quantidade++; 
+        atualizarQuantidade(); 
+        atualizarPreco(); 
+    }
+    
+    @FXML
+    void menos(ActionEvent event) {
+        if (quantidade > 0) { 
+            quantidade--; 
+        }
+        atualizarQuantidade(); 
+        atualizarPreco(); 
+    }
+
+    private void atualizarQuantidade() {
+        quant.setText("" + quantidade);
+    }
+
+    @FXML
+    void escolherAção(ActionEvent event) {
+        String siglaAPI = acoes.getText().trim();
+        if (siglaAPI.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Erro", "Por favor, insira um símbolo válido.");
+            return;
+        }
+
+        StockApi.fetchAndStoreDailyPrice(siglaAPI);
+        precoAtual = StockApi.getLastPrice(siglaAPI);
+
+        if (preco != null && precoAtual != null) {
+            preco.setText(String.format("R$ %.2f", precoAtual));
+        }
+
+        StockChart stockChart = new StockChart(siglaAPI, StockApi);
+        StackPane chartPane = stockChart.getChartPane();
+        grafico.setGraphic(chartPane);
+    }
+
+    @FXML
+    void comprar(ActionEvent event) {
+        String siglaAPI = acoes.getText().trim();
+
+        if (siglaAPI.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Erro", "Digite o código da ação antes de comprar.");
+            return;
+        }
+        if (quantidade <= 0) {
+            showAlert(Alert.AlertType.ERROR, "Erro", "Selecione a quantidade de ações para comprar (+/-).");
+            return;
+        }
+
+        if (precoAtual == null) {
+            StockApi.fetchAndStoreDailyPrice(siglaAPI);
+            precoAtual = StockApi.getLastPrice(siglaAPI);
+        }
+        if (precoAtual == null) {
+            showAlert(Alert.AlertType.ERROR, "Erro", "Não foi possível obter o preço da ação. Clique em 'Escolher' primeiro.");
+            return;
+        }
+
+        double precoCompra = precoAtual * quantidade;
+
+        if (precoCompra <= conta.getSaldo()) {
+            
+            String sql = "INSERT INTO operations (account_id, stock_symbol, operation_type, quantity, price_per_stock, total_value) VALUES (?, ?, ?, ?, ?, ?)";
+            try (Connection conn = DatabaseManager.getConnection();
+                 PreparedStatement statement = conn.prepareStatement(sql)) {
+
+                statement.setInt(1, conta.getId());
+                statement.setString(2, siglaAPI);
+                statement.setString(3, "BUY");
+                statement.setInt(4, quantidade);
+                statement.setDouble(5, precoAtual);
+                statement.setDouble(6, precoCompra);
+                statement.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Erro no Banco", "Erro ao registrar compra no banco: " + e.getMessage());
+                return;
+            }
+
+            // 2. AGORA QUE O BANCO ESTÁ LIVRE, ATUALIZA O SALDO E A SESSÃO
+            conta.subtrairSaldo(precoCompra);
+            try {
+                atualizarSaldo(); // Esta função vai abrir sua própria conexão com segurança
+            } catch (Exception e) {
+                System.out.println("Erro ao atualizar o saldo: " + e.getMessage());
+            }
+
+            Sessao.setAccountId(conta.getId());
+            Sessao.setSaldo(conta.getSaldo());
+
+            int qtdComprada = quantidade;
+            quantidade = 0;
+            atualizarQuantidade();
+            
+            showAlert(Alert.AlertType.INFORMATION, "Sucesso",
+                String.format("Compra de %d ação(ões) de %s por R$ %.2f cada.\nTotal pago: R$ %.2f",
+                    qtdComprada, siglaAPI, precoAtual, precoCompra));
+
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Saldo insuficiente",
+                String.format("A compra custa R$ %.2f mas seu saldo é R$ %.2f", precoCompra, conta.getSaldo()));
+        }
+    }
+
+    @FXML
+    void vender(ActionEvent event) {
+        String siglaAPI = acoes.getText().trim();
+
+        if (siglaAPI.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Erro", "Escolha uma ação antes de vender.");
+            return;
+        }
+        if (quantidade <= 0) {
+            showAlert(Alert.AlertType.ERROR, "Erro", "Selecione a quantidade de ações para vender (+/-).");
+            return;
+        }
+
+        StockApi.fetchAndStoreDailyPrice(siglaAPI);
+        Double precoAcao = StockApi.getLastPrice(siglaAPI);
+        if (precoAcao == null) {
+            showAlert(Alert.AlertType.ERROR, "Erro", "Não foi possível obter o preço da ação.");
+            return;
+        }
+
+        double precoVenda = precoAcao * quantidade;
+        int quantidadeDisponivel = verificarQuantidadeAcoes(siglaAPI, conta.getId());
+
+        if (quantidadeDisponivel >= quantidade) {
+            
+            String sql = "INSERT INTO operations (account_id, stock_symbol, operation_type, quantity, price_per_stock, total_value) VALUES (?, ?, ?, ?, ?, ?)";
+            try (Connection conn = DatabaseManager.getConnection();
+                 PreparedStatement statement = conn.prepareStatement(sql)) {
+
+                statement.setInt(1, conta.getId());
+                statement.setString(2, siglaAPI);
+                statement.setString(3, "SELL");
+                statement.setInt(4, quantidade);
+                statement.setDouble(5, precoAcao);
+                statement.setDouble(6, precoVenda);
+                statement.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Erro no Banco", "Erro ao registrar venda no banco: " + e.getMessage());
+                return;
+            }
+
+            // 2. AGORA QUE O BANCO ESTÁ LIVRE, ATUALIZA O SALDO E A SESSÃO
+            conta.adicionarSaldo(precoVenda);
+            try {
+                atualizarSaldo(); // Esta função vai abrir sua própria conexão com segurança
+            } catch (Exception e) {
+                System.out.println("Erro ao atualizar o saldo: " + e.getMessage());
+            }
+
+            Sessao.setAccountId(conta.getId());
+            Sessao.setSaldo(conta.getSaldo());
+
+            int qtdVendida = quantidade;
+            quantidade = 0;
+            atualizarQuantidade();
+            precoAtual = null;
+            
+            showAlert(Alert.AlertType.INFORMATION, "Sucesso",
+                String.format("Venda de %d ação(ões) de %s por R$ %.2f cada.\nTotal recebido: R$ %.2f",
+                    qtdVendida, siglaAPI, precoAcao, precoVenda));
+
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Erro",
+                "Você tem apenas " + quantidadeDisponivel + " ação(ões) de " + siglaAPI + " disponíveis.");
+        }
+    }
+    private int verificarQuantidadeAcoes(String siglaAPI, int accountId) {
+        // Calcula o saldo líquido: total comprado - total vendido
+        String sql = "SELECT " +
+            "COALESCE(SUM(CASE WHEN operation_type = 'BUY'  THEN quantity ELSE 0 END), 0) - " +
+            "COALESCE(SUM(CASE WHEN operation_type = 'SELL' THEN quantity ELSE 0 END), 0) " +
+            "AS saldo_acoes " +
+            "FROM operations WHERE account_id = ? AND stock_symbol = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
+
+            statement.setInt(1, accountId);
+            statement.setString(2, siglaAPI);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
@@ -117,250 +334,4 @@ public class principalController  {
         alert.setContentText(message);
         alert.showAndWait();
     }
-
-    private void atualizarSaldo() throws SQLException {
-        // Exibe o saldo atual formatado na interface
-        labelSaldo.setText(String.format("%.2f", conta.getSaldo()));
-    
-        // Atualiza o saldo no banco de dados
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            String sqlUpdateBalance = "UPDATE accounts SET balance = ? WHERE id = ?";
-            try (PreparedStatement statement = connection.prepareStatement(sqlUpdateBalance)) {
-                // Configura os parâmetros do comando SQL
-                statement.setInt(1, conta.getId()); 
-                statement.setDouble(2, conta.getSaldo()); // Novo saldo
-                
-                // Executa o comando SQL
-                int rowsUpdated = statement.executeUpdate();
-    
-                // Opcional: Verifica se a atualização foi bem-sucedida
-                if (rowsUpdated > 0) {
-                    System.out.println("Saldo atualizado com sucesso no banco de dados.");
-                } else {
-                    System.out.println("Nenhuma linha foi atualizada. Verifique o ID do usuário.");
-                }
-            }
-        }
-    }
-    
-    
-    @FXML
-    void irpratelaMenu(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Menu.fxml"));
-        Parent root = loader.load();
-        Stage stage = new Stage();
-        stage.setScene(new Scene(root));
-        stage.setTitle("Menu");
-        stage.show();
-    }
-
-   // Adiciona uma variável para armazenar o preço atual da ação
-    private Double precoAtual = null;
-
-    // Método para atualizar o preço
-    public void atualizarPreco() {
-        String siglaAPI = acoes.getText(); // Pega o símbolo da ação inserido
-        if (!siglaAPI.isEmpty()) {
-            // Se o preço já estiver armazenado, usa ele diretamente
-            if (precoAtual == null) {
-                precoAtual = StockApi.getLastPrice(siglaAPI);
-            }
-            
-            // Verifica se o preço é válido
-            if (precoAtual != null) {
-                // Calcula o valor total (preço da ação * quantidade)
-                Double valorTotal = precoAtual * quantidade;
-                
-                // Exibe o valor total no Label
-                preco.setText(String.format("Preço Total: %.2f", valorTotal));
-            } else {
-                // Exibe mensagem de erro se o preço for null
-                preco.setText("Erro: Não foi possível obter o preço.");
-            }
-        }
-    }
-
-    
-    
-    @FXML
-    void mais(ActionEvent event) {
-        quantidade++; // Incrementa a quantidade
-        atualizarQuantidade(); // Atualiza a exibição da quantidade
-        atualizarPreco(); // Atualiza o preço total exibido
-    }
-    
-    @FXML
-    void menos(ActionEvent event) {
-        if (quantidade > 0) { // Garante que a quantidade não fique negativa
-            quantidade--; // Decrementa a quantidade
-        }
-        atualizarQuantidade(); // Atualiza a exibição da quantidade
-        atualizarPreco(); // Atualiza o preço total exibido
-    }
-
-    private void atualizarQuantidade() {
-        // Atualiza a exibição da quantidade
-        quant.setText("" + quantidade);
-    }
-
-    @FXML
-    void escolherAção(ActionEvent event) {
-        String siglaAPI = acoes.getText(); // Pega o símbolo da ação inserido
-    
-        // Verifica se o preço não foi atualizado ou é nulo
-        if (precoAtual == null || !siglaAPI.equals(acoes.getText())) {
-            StockApi.fetchAndStoreDailyPrice(siglaAPI);
-            precoAtual = StockApi.getLastPrice(siglaAPI); // Atualiza o preço
-        }
-    
-        // Verifica se o campo de texto não está vazio
-        if (!siglaAPI.isEmpty()) {
-            // Instancia a classe StockChart para o gráfico de linha
-            StockChart stockChart = new StockChart(siglaAPI);
-    
-            // Obtém o StackPane com o gráfico
-            StackPane chartPane = stockChart.getChartPane();
-    
-            // Exibe o gráfico dentro do Label (usando um StackPane no lugar de apenas o gráfico)
-            grafico.setGraphic(chartPane);
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Erro", "Por favor, insira um símbolo válido.");
-        }
-    }
-    
-    
-
-
-    @FXML
-    void vender(ActionEvent event) {
-        String siglaAPI = acoes.getText();
-        Operacao op = Operacao.SELL;
-
-        // Chama o método da StockApi para buscar o preço da ação
-        StockApi.fetchAndStoreDailyPrice(siglaAPI);
-        Double precoAcao = StockApi.getLastPrice(siglaAPI); // Preço da ação
-        Double precoVenda = precoAcao * quantidade; // Cálculo do valor total da venda (preço da ação * quantidade)
-
-        // Passo 1: Consultar o banco de dados para verificar se o usuário tem ações suficientes para vender
-        int quantidadeDisponivel = verificarQuantidadeAcoes(siglaAPI, conta.getId());
-
-        if (quantidadeDisponivel >= quantidade) {
-            // Passo 2: Se o usuário tem ações suficientes, subtrair o valor da venda do saldo
-            conta.adicionarSaldo(precoVenda);
-
-            // Passo 3: Registrar a operação de venda no banco de dados
-            try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-                connection.setAutoCommit(false); // Inicia uma transação
-                
-                // Registrar a operação de venda
-                String sql = "INSERT INTO operations (account_id, stock_symbol, operation_type, quantity, price_per_stock, total_value) VALUES (?, ?, ?, ?, ?, ?)";
-                PreparedStatement statement = connection.prepareStatement(sql);
-                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int account_id = generatedKeys.getInt(1); // Obtém o ID gerado
-                    
-                statement.setInt(1, account_id);
-                statement.setString(2, siglaAPI);
-                statement.setString(3, op.toString());
-                statement.setInt(4, quantidade);
-                statement.setDouble(5, precoAcao);
-                statement.setDouble(6, precoVenda);
-                statement.executeUpdate();
-                    
-                // Comita a transação
-                connection.commit();
-                
-                // Atualiza a interface com o novo saldo e a quantidade de ações
-                atualizarSaldo();
-                quantidade = 0; // Reseta a quantidade de ações na interface
-                atualizarQuantidade();
-                showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Venda realizada com sucesso!");
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Erro", "Ocorreu um erro ao registrar a operação.");
-            }
-        } else {
-            // Se o usuário não tiver ações suficientes para a venda
-            showAlert(Alert.AlertType.ERROR, "Erro", "Você não tem ações suficientes para vender.");
-        }
-    }
-
-    // Método para consultar a quantidade de ações de um usuário no banco de dados
-    private int verificarQuantidadeAcoes(String siglaAPI, int userId) {
-        int quantidade = 0;
-        String sql = "SELECT SUM(quantity) AS total_quantity FROM operations WHERE account_id = ? AND stock_symbol = ? AND operation_type = 'BUY' GROUP BY stock_symbol";
-
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, userId);  // ID da conta (usuário)
-            statement.setString(2, siglaAPI); // Símbolo da ação
-
-            // Executa a consulta e obtém o resultado
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                quantidade = resultSet.getInt("total_quantity");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return quantidade;
-    }
-    public void setConta(Conta conta) throws SQLException {
-        this.conta = conta;
-        atualizarSaldo(); // Atualiza o saldo na interface com os dados da conta configurada
-        }
-        @FXML
-        void comprar(ActionEvent event) throws IOException {
-            // Recupera o símbolo da ação inserido pelo usuário e a quantidade de ações desejada
-            String siglaAPI = acoes.getText();
-            Operacao op = Operacao.BUY;
-        
-            // Chama o método da StockApi para buscar o preço da ação apenas quando necessário
-            if (precoAtual == null) {
-                StockApi.fetchAndStoreDailyPrice(siglaAPI);
-                precoAtual = StockApi.getLastPrice(siglaAPI);
-            }
-            Double precoCompra = precoAtual * quantidade; // Cálculo do valor total da compra (preço da ação * quantidade)
-        
-            // Verifica se o saldo da conta é suficiente para a compra
-            if (precoCompra <= conta.getSaldo()) {
-                // Registra a operação no banco de dados
-                try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-                    connection.setAutoCommit(false); // Inicia uma transação
-        
-                    // Registrar a operação de compra
-                    String sql = "INSERT INTO operations (account_id, stock_symbol, operation_type, quantity, price_per_stock, total_value) VALUES (?, ?, ?, ?, ?, ?)";
-                    PreparedStatement statement = connection.prepareStatement(sql);
-                    statement.setInt(1, conta.getId()); // ID da conta
-                    statement.setString(2, siglaAPI); // Símbolo da ação
-                    statement.setString(3, op.toString()); // Tipo de operação (BUY)
-                    statement.setInt(4, quantidade); // Quantidade de ações compradas
-                    statement.setDouble(5, precoAtual); // Preço por ação
-                    statement.setDouble(6, precoCompra); // Valor total da compra
-                    statement.executeUpdate();
-        
-                    // Subtrai o valor da compra do saldo da conta
-                    conta.subtrairSaldo(precoCompra);
-        
-                    // Atualiza o saldo exibido na interface
-                    atualizarSaldo();
-        
-                    // Comita a transação
-                    connection.commit();
-        
-                    showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Compra realizada com sucesso!");
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    showAlert(Alert.AlertType.ERROR, "Erro", "Ocorreu um erro ao registrar a operação.");
-                }
-            } else {
-                // Se o saldo for insuficiente, exibe uma mensagem de erro
-                showAlert(Alert.AlertType.ERROR, "Erro", "Saldo insuficiente para realizar a compra.");
-            }
-        }
-        
 }

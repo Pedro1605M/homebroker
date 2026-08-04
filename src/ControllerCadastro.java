@@ -17,10 +17,6 @@ import java.sql.SQLException;
 
 public class ControllerCadastro {
 
-    private static final String DB_URL = "jdbc:mysql://pd2ub.h.filess.io:3307/homebroker_substance";
-    private static final String DB_USER = "homebroker_substance";
-    private static final String DB_PASSWORD = "675ff3244d016e1bca2bde49e09e4a8c35396823";
-
     @FXML
     private Button cadastrar_id;
 
@@ -52,7 +48,7 @@ public class ControllerCadastro {
         }
 
         // Operação no banco de dados
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+        try (Connection connection = DatabaseManager.getConnection()) {
             String sqlInsertUser = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
             String sqlInsertAccount = "INSERT INTO accounts (user_id, balance) VALUES (?, ?)";
 
@@ -80,7 +76,8 @@ public class ControllerCadastro {
                             showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Usuário cadastrado com sucesso!");
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
                             Parent root = loader.load();
-                            Stage stage = new Stage();
+                            // Reutiliza a janela atual — não abre nova
+                            Stage stage = (Stage) cadastrar_id.getScene().getWindow();
                             stage.setScene(new Scene(root));
                             stage.setTitle("Login");
                             stage.show();
@@ -110,7 +107,7 @@ public class ControllerCadastro {
     void irParaTelaLogin(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
         Parent root = loader.load();
-        Stage stage = new Stage();
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
         stage.setTitle("Login");
         stage.show();
