@@ -1,5 +1,4 @@
-.vscode/launch.json
-.vscode/settings.json
+# .vscode/settings.json  ← descomente se quiser ignorar configurações pessoais
 
 
 /bin/
