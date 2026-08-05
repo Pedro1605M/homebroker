@@ -103,9 +103,9 @@ Alguns ajustes ainda estão sendo realizados, principalmente relacionados à est
 
 ## 🔮 Melhorias Futuras
 
-- Melhorar a estabilidade do gráfico (correção de pequenos bugs visuais)
+- Melhorar a estabilidade do gráfico
 - Otimizar atualização em tempo real
-- Criptografar senhas armazenadas no banco (atualmente em texto puro)
+- Melhorar o design das telas
 - Melhorar tratamento de exceções
-- Implementar testes unitários
 - Suporte multiplataforma (Mac/Linux) com JARs do JavaFX adequados
+- Adicionar mais coisas
