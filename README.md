@@ -73,23 +73,21 @@ O VS Code compila automaticamente e já abre o app.
 
 ---
 
-### Opção 2 — Terminal (`.bat`)
+### Opção 2 — Terminal
 
 Abra o terminal na pasta do projeto e execute:
 
-**1ª vez ou após modificar o código:**
+**1ª vez ou após modificar o código** (compila e abre o app):
 ```bash
-.\build.bat
+javac --module-path lib --add-modules javafx.controls,javafx.fxml -cp "lib\*" -d bin src\*.java
+copy src\*.fxml bin\
+java --module-path lib --add-modules javafx.controls,javafx.fxml -cp bin Main
 ```
-Compila, copia os recursos e já abre o app.
 
 **Nas próximas vezes (sem mudanças no código):**
 ```bash
-.\run.bat
+java --module-path lib --add-modules javafx.controls,javafx.fxml -cp bin Main
 ```
-Abre o app direto, sem recompilar.
-
-> Você também pode dar **duplo clique** nos arquivos `.bat` no Explorador de Arquivos.
 
 ---
 
