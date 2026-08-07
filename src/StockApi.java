@@ -1,5 +1,4 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -11,15 +10,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Random;
 
 public class StockApi {
 
     public static final String API_KEY = "TRSY7U3SUNU9AZ2X";
     private static final long CACHE_EXPIRATION_TIME = 60 * 60 * 1000; // 1 hora
+    private static final String CACHE_FILE = "stock_cache.dat";
 
     private Map<String, ArrayList<Map<String, Double>>> priceHistories = new HashMap<>();
     private Map<String, Long> lastFetchTimes = new HashMap<>();
+
+    public StockApi() {
+        loadCacheFromDisk();
+    }
 
     // ─── Configuração SSL para ignorar certificado inválido ─────────────────────
     static {
@@ -44,10 +47,10 @@ public class StockApi {
     public void fetchAndStoreDailyPrice(String symbol) {
         long currentTime = System.currentTimeMillis();
 
-        // Cache ainda válido? Não busca de novo.
+        // Cache (em memória) ainda válido? Não busca de novo.
         if (priceHistories.containsKey(symbol) &&
             (currentTime - lastFetchTimes.getOrDefault(symbol, 0L)) < CACHE_EXPIRATION_TIME) {
-            System.out.println("Usando cache para " + symbol);
+            System.out.println("Usando cache em memória para " + symbol);
             return;
         }
 
@@ -73,8 +76,6 @@ public class StockApi {
             in.close();
 
             String jsonResponse = response.toString();
-            System.out.println("Resposta da API (primeiros 200 chars): " + jsonResponse.substring(0, Math.min(200, jsonResponse.length())));
-
             ArrayList<Map<String, Double>> dailyPrices = extractDailyPricesWithDate(jsonResponse);
 
             if (!dailyPrices.isEmpty()) {
@@ -82,6 +83,7 @@ public class StockApi {
                 lastFetchTimes.put(symbol, currentTime);
                 apiSuccess = true;
                 System.out.println("Dados reais carregados para " + symbol);
+                saveCacheToDisk(); // Salva o arquivo assim que obtemos dados novos com sucesso
             } else {
                 System.out.println("API retornou resposta vazia ou rate-limited para " + symbol);
             }
@@ -90,57 +92,15 @@ public class StockApi {
             System.out.println("Falha ao chamar API para " + symbol + ": " + e.getMessage());
         }
 
-        // Fallback: usa dados simulados se a API falhou
+        // Se a API falhar, simplesmente mantemos o que já temos armazenado
         if (!apiSuccess) {
-            System.out.println("Usando dados simulados para " + symbol);
-            ArrayList<Map<String, Double>> simulados = gerarDadosSimulados(symbol);
-            priceHistories.put(symbol, simulados);
-            lastFetchTimes.put(symbol, currentTime);
+            if (priceHistories.containsKey(symbol)) {
+                System.out.println("API falhou. Mantendo os últimos dados reais guardados para " + symbol);
+            } else {
+                System.out.println("API falhou e não temos histórico salvo para " + symbol + ". Ficará sem dados.");
+            }
         }
     }
-
-    // ─── Gera 30 dias de preços simulados coerentes com o símbolo ───────────────
-    private ArrayList<Map<String, Double>> gerarDadosSimulados(String symbol) {
-        ArrayList<Map<String, Double>> dados = new ArrayList<>();
-
-        // Preço base diferente por ação para parecer real
-        double basePrice = getBasePrice(symbol);
-        Random rng = new Random(symbol.hashCode()); // seed fixo por símbolo (reproduzível)
-
-        // Gera 30 dias retroativos
-        java.time.LocalDate hoje = java.time.LocalDate.now();
-        double preco = basePrice;
-        for (int i = 29; i >= 0; i--) {
-            java.time.LocalDate data = hoje.minusDays(i);
-            // Variação diária de -3% a +3%
-            double variacao = 1 + (rng.nextDouble() * 0.06 - 0.03);
-            preco = Math.max(1.0, preco * variacao);
-
-            Map<String, Double> entry = new LinkedHashMap<>();
-            entry.put(data.toString(), Math.round(preco * 100.0) / 100.0);
-            dados.add(entry);
-        }
-        return dados;
-    }
-
-    private double getBasePrice(String symbol) {
-        // Preços base aproximados de ações brasileiras comuns
-        switch (symbol.toUpperCase()) {
-            case "PETR4.SA": case "PETR4": return 38.50;
-            case "VALE3.SA": case "VALE3": return 62.20;
-            case "ITUB4.SA": case "ITUB4": return 34.80;
-            case "BBDC4.SA": case "BBDC4": return 14.60;
-            case "ABEV3.SA": case "ABEV3": return 12.90;
-            case "MGLU3.SA": case "MGLU3": return 9.40;
-            case "WEGE3.SA": case "WEGE3": return 52.30;
-            case "BBAS3.SA": case "BBAS3": return 28.70;
-            case "ITSA4.SA": case "ITSA4": return 11.20;
-            default:
-                // Preço genérico baseado no hash do símbolo
-                return 10.0 + (Math.abs(symbol.hashCode()) % 100);
-        }
-    }
-    // ────────────────────────────────────────────────────────────────────────────
 
     private ArrayList<Map<String, Double>> extractDailyPricesWithDate(String jsonResponse) {
         ArrayList<Map<String, Double>> priceWithDates = new ArrayList<>();
@@ -149,8 +109,12 @@ public class StockApi {
 
             if (jsonObject.has("Time Series (Daily)")) {
                 JSONObject timeSeries = jsonObject.getJSONObject("Time Series (Daily)");
+                
+                // Obtém todas as datas e ordena de forma crescente (da mais antiga para a mais nova)
+                java.util.List<String> dates = new java.util.ArrayList<>(timeSeries.keySet());
+                java.util.Collections.sort(dates);
 
-                for (String date : timeSeries.keySet()) {
+                for (String date : dates) {
                     JSONObject data = timeSeries.getJSONObject(date);
                     if (data.has("4. close")) {
                         double price = Double.parseDouble(data.getString("4. close"));
@@ -170,6 +134,7 @@ public class StockApi {
         ArrayList<Map<String, Double>> history = priceHistories.getOrDefault(symbol, new ArrayList<>());
         history.addAll(newPriceData);
         priceHistories.put(symbol, history);
+        saveCacheToDisk();
     }
 
     public ArrayList<Map<String, Double>> getPriceHistoryWithDate(String symbol) {
@@ -183,5 +148,31 @@ public class StockApi {
             return prices.get(prices.size() - 1).values().iterator().next();
         }
         return null;
+    }
+
+    // ─── Salva e Carrega dados do disco rígido ─────────────────────────────────
+
+    private void saveCacheToDisk() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CACHE_FILE))) {
+            oos.writeObject(priceHistories);
+        } catch (Exception e) {
+            System.out.println("Erro ao salvar cache em disco: " + e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadCacheFromDisk() {
+        File file = new File(CACHE_FILE);
+        if (!file.exists()) return;
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            Object obj = ois.readObject();
+            if (obj instanceof Map) {
+                priceHistories = (Map<String, ArrayList<Map<String, Double>>>) obj;
+                System.out.println("Cache de ações carregado do disco com sucesso.");
+            }
+        } catch (Exception e) {
+            System.out.println("Aviso: Não foi possível carregar o cache antigo do disco.");
+        }
     }
 }

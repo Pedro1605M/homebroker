@@ -1,4 +1,8 @@
 # .vscode/settings.json  ← descomente se quiser ignorar configurações pessoais
 
-
 /bin/
+/out/
+/.idea/
+*.iml
+stock_cache.dat
+homebroker.db
