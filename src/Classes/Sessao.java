@@ -1,3 +1,5 @@
+package Classes;
+
 public class Sessao {
     private static Integer userId;
     private static Integer accountId;

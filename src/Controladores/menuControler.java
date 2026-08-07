@@ -1,3 +1,6 @@
+package Controladores;
+
+import Classes.*;
 import java.io.IOException;
 
 import javafx.event.ActionEvent;
@@ -21,17 +24,17 @@ public class menuControler {
 
     @FXML
     void irparaHistorico(ActionEvent event) throws IOException {
-        trocarTela(event, "historico.fxml", "Histórico");
+        trocarTela(event, "/Telas/historico.fxml", "Histórico");
     }
 
     @FXML
     void irparaMinhaConta(ActionEvent event) throws IOException {
-        trocarTela(event, "Minha_conta.fxml", "Minha Conta");
+        trocarTela(event, "/Telas/Minha_conta.fxml", "Minha Conta");
     }
 
     @FXML
     void irparatelaPrincipal(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("principal.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Telas/principal.fxml"));
         Parent root = loader.load();
 
         // Restaura a conta a partir da sessão para não zerar o saldo

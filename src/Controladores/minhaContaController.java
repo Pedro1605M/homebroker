@@ -1,3 +1,6 @@
+package Controladores;
+
+import Classes.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -78,7 +81,7 @@ public class minhaContaController {
 
     @FXML
     void irpratelaMenu(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Menu.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Telas/Menu.fxml"));
         Parent root = loader.load();
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
@@ -88,7 +91,7 @@ public class minhaContaController {
 
     @FXML
     void sairDaConta(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Cadastro.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Telas/Cadastro.fxml"));
         Parent root = loader.load();
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));

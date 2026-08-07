@@ -4,7 +4,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
-<AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="457.0" prefWidth="640.0" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="menuControler">
+<AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="457.0" prefWidth="640.0" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controladores.menuControler">
    <children>
       <Text fill="WHITE" layoutX="284.0" layoutY="44.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Menu:" wrappingWidth="120.48779296875">
          <font>

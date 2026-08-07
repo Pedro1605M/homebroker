@@ -1,3 +1,6 @@
+package Controladores;
+
+import Classes.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -60,7 +63,7 @@ public class ControllerLogin {
                         Sessao.iniciarSessao(userId, accountId, email, email, balance);
 
                         showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Login realizado com sucesso!");
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("principal.fxml"));
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Telas/principal.fxml"));
                         Parent root = loader.load();
                         principalController controller = loader.getController();
                         controller.setConta(contaObj);

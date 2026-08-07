@@ -1,3 +1,6 @@
+package Controladores;
+
+import Classes.*;
 import java.io.IOException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -74,7 +77,7 @@ public class ControllerCadastro {
                             }
 
                             showAlert(Alert.AlertType.INFORMATION, "Sucesso", "Usuário cadastrado com sucesso!");
-                            FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Telas/login.fxml"));
                             Parent root = loader.load();
                             // Reutiliza a janela atual — não abre nova
                             Stage stage = (Stage) cadastrar_id.getScene().getWindow();
@@ -105,7 +108,7 @@ public class ControllerCadastro {
 
     @FXML
     void irParaTelaLogin(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Telas/login.fxml"));
         Parent root = loader.load();
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));

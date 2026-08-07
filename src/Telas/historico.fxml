@@ -13,7 +13,7 @@
             style="-fx-background-color: linear-gradient(#250934, #151217);"
             xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="historicoController">
+            fx:controller="Controladores.historicoController">
    <children>
       <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0"
                  layoutX="-363.0" layoutY="-132.0" stroke="BLACK" strokeType="INSIDE" width="200.0" />
